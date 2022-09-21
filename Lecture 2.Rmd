@@ -7,21 +7,207 @@ date: "2022-09-20"
 # calculating cyclical correlation 
 
 
-Recall from lecture 1: ty was our detrended series using linear
-detrending method hpy was our detrended series using HP filter
+```{r}
+set.seed(524)
+a <- rnorm(80); x <- cumsum(a)
+x <- ts(x, start = c(2010, 1), frequency = 4)
+
+
+set.seed(525)
+b <- rnorm(80); y <- cumsum(b);
+y <- ts(y, start = c(2010, 1), frequency = 4)
+```
+
 
 ```{r}
-library(stats)
+plot(x)
+plot(y)
+```
 
-plot(ty, type="l")
-plot(hpy, type="l")
+
+
+
+```{r}
+x <- as.numeric(x) # this converts the variable from ts() to a normal vector (the ccf function below works 
+y <- as.numeric(y)
+cc <- ccf(x, y, 1, pl = F)
+cc
+```
+
+
+
+## Cyclical volatility
+
+```{r}
+vy <- (hpy/hptrend) * 100
+sd(vy)
 ```
 
 ```{r}
-cc <- ccf(as.numeric(ty),as.numeric(hpy), lag.max=1, pl = F)
+ccf(y, x, 1, pl = F)
 ```
 
 ```{r}
-plot(cc, ci=0.95, ylab="", xlab="", main="") 
+cc=ccf(x, y, 2, pl=F)
+plot(cc, ci=0.95, ylab="", xlab="", main="") # ci=0.95 means 95 percent confidence interval.
 ```
+
+
+## Calculating cyclical volatility 
+
+```{r}
+set.seed(525)
+a <- rnorm(80, mean = 1.5, sd=3)
+x<- cumsum(a)
+plot(x, t="l")
+```
+
+
+We created a trend, we can remove this and use the cyclical volatility 
+
+```{r}
+library(mFilter)
+lambda <- 1600
+hp = hpfilter(x, lambda)
+trend_x <- hp$trend
+```
+
+
+
+```{r}
+v_x <- ((x - trend_x) * 100/trend_x)
+```
+
+
+```{r}
+sd(v_x)
+```
+
+
+
+
+# Exercise 
+
+1. Which variables are procyclical and which ones are counter-cyclical?
+
+2. Which business cycle variable is the most volatile?
+-Note: Remember to work with seaonsally adjusted and detrended data!
+
+
+Step 1.  Load data
+
+```{r}
+library(readxl)
+data <- read_excel("data.xlsx")
+data=lapply(data, function(t) ts(t, start=c(1950, 1), end=c(2018, 1),frequency=4))
+attach(data)
+
+```
+
+
+**step 2. deseasonalyze the data**
+
+
+```{r}
+X <- cycle(real_Credit)
+q1 <- ifelse(X == "1", 1, 0)
+q2 <- ifelse(X == "2", 1, 0)
+q3 <- ifelse(X == "3", 1, 0)
+q4 <- ifelse(X == "4", 1, 0)
+
+
+summary(real_Credit.reg <- lm(real_Credit ~ q1 + q2 + q3)); mean_real_cred= mean(real_Credit)
+summary(stock_prices.reg <- lm(`stock prices` ~ q1 + q2 + q3)); mean_stock_price= mean(`stock prices`)
+summary(real_house_prices.reg <- lm(`real house prices` ~ q1 + q2 + q3)); mean_real_house= mean(`real house prices`)
+summary(real_gdp.reg <- lm(real_gdp ~ q1 + q2 + q3)); mean_real_gdp= mean(real_gdp)
+
+```
+
+
+```{r}
+real_cred_de=ts(residuals(real_Credit.reg)+mean_real_cred, start = 1950, frequency = 4)
+stock_price_de=ts(residuals(stock_prices.reg)+ mean_stock_price, start = 1950, frequency = 4)
+real_house_de=ts(residuals(real_house_prices.reg)+mean_real_house , start = 1950, frequency = 4)
+real_gdp_de=ts(residuals(real_gdp.reg)+mean_real_gdp , start = 1950, frequency = 4)
+```
+
+```{r}
+plot(real_cred_de); lines(real_Credit, col= "red")
+plot(stock_price_de); lines(`stock prices`, col= "red")
+plot(real_house_de); lines(`real house prices`, col= "red")
+plot(real_gdp_de); lines(real_gdp, col= "red")
+```
+
+
+
+**Step 3 detrend**
+
+
+```{r}
+library(mFilter)
+
+# REal credit
+
+lambda <- 1600
+hp1 = hpfilter(real_cred_de, lambda)
+hptrend1 <- hp1$trend
+
+
+#Stock prices
+hp2 = hpfilter(stock_price_de, lambda)
+hptrend2 <- hp2$trend
+
+#Real house
+hp3 = hpfilter(real_house_de, lambda)
+hptrend3 <- hp3$trend
+
+#real gdp
+hp4 = hpfilter(real_gdp_de, lambda)
+hptrend4 <- hp4$trend
+```
+
+
+```{r}
+
+# REal credit
+real_cred_det = ts((real_Credit - hptrend1), start=1950, frequency=4)
+real_cred_det1 <- real_cred_det + real_Credit[1]
+
+#Stock prices
+stock_price_det = ts((`stock prices` - hptrend2), start=1950, frequency=4)
+stock_price_det1 <- stock_price_det + `stock prices`[1]
+
+#Real house
+
+real_house_det = ts((`real house prices` - hptrend3), start=1950, frequency=4)
+real_house_det1 <- real_house_det + `real house prices`[1]
+#real gdp
+
+real_gdp_det = ts((real_gdp - hptrend4), start=1950, frequency=4)
+real_gdp_det1 <- real_gdp_det + real_gdp[1]
+```
+
+
+```{r}
+ts.plot(real_Credit, hptrend1, real_cred_det1, lwd=c(1,1,1), lty=c(3,1,1), xlab="Year", col=c("black", "red", "blue"))
+
+ts.plot(`stock prices`, hptrend2, stock_price_det1, lwd=c(1,1,1), lty=c(3,1,1), xlab="Year", col=c("black", "red", "blue"))
+
+ts.plot(`real house prices`, hptrend3, real_house_det1, lwd=c(1,1,1), lty=c(3,1,1), xlab="Year", col=c("black", "red", "blue"))
+
+ts.plot(real_gdp, hptrend4, real_gdp_det1, lwd=c(1,1,1), lty=c(3,1,1), xlab="Year", col=c("black", "red", "blue"))
+```
+
+
+
+**Step 4 look at cross correlation**
+
+```{r}
+#Real credit
+
+cc1=ccf(as.numeric(real_cred_det1), as.numeric(real_gdp_det1), 2, pl=F)
+plot(cc1, ci=0.95, ylab="", xlab="", main="")
+```
+
+
 
