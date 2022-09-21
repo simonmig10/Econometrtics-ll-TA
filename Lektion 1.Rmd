@@ -1,0 +1,254 @@
+---
+title: "Lektion 1"
+output: html_document
+date: "2022-09-13"
+---
+
+
+```{r}
+library(stats)
+library(tseries)
+library(timeSeries)
+```
+
+
+
+```{r}
+library(pwt)
+data("pwt6.3")
+td <- pwt6.3
+td$rgdp <- td$rgdpch*td$pop # real GDP = real GDP per capital X population
+td$hours <- td$rgdpl/td$rgdpl2th
+td <- subset(td, subset=isocode=="DNK",
+select=c(isocode, country, year, rgdp, rgdpch, hours, pop))
+write.table(td, file="dataset1.txt")
+```
+
+```{r}
+Z <- ts(td[-c(1:3)], start = 1950, frequency = 1)
+```
+
+
+```{r}
+plot(Z[, "rgdp"], col = "black", lwd = "2", main = "Real GDP")
+plot(Z[, "rgdpch"], col = "green", lwd = "2", main = "Real GDP per capita")
+plot(Z[, "hours"], col = "blue", lwd = "2", main = "Hours")
+plot(Z[, "pop"], col = "red", lwd = "2", main = "Population")
+
+```
+
+
+
+
+
+```{r}
+td$productivity <- td$rgdp/td$hours
+```
+
+```{r}
+DK.data <- subset(td, subset = !is.na(productivity))
+DK.data <- ts(DK.data[-c(1:3)], start = min(DK.data$year), frequency = 1)
+```
+
+
+
+```{r}
+library(readxl)
+td <- read_excel("Danish_GDP.xlsx")
+head(td)
+
+```
+
+
+```{r}
+y <- ts(td$bnp, start = 1995, frequency = 4)
+plot(y, xlab = "Year", ylab = "GDP", lwd = "2")
+
+```
+
+
+
+# Seasonality Detrending
+
+```{r}
+X <- cycle(y)
+q1 <- ifelse(X == "1", 1, 0)
+q2 <- ifelse(X == "2", 1, 0)
+q3 <- ifelse(X == "3", 1, 0)
+q4 <- ifelse(X == "4", 1, 0)
+summary(y.reg <- lm(y ~ q1 + q2 + q3))
+
+```
+
+
+```{r}
+plot(ts(residuals(y.reg), start = 1995, frequency = 4), lwd = 3)
+
+```
+
+```{r}
+yhat <- residuals(y.reg) + mean(fitted.values(y.reg))
+ts.plot(y, yhat, lty = c(3, 1), lwd = c(1, 1))
+legend(1995, max(y), c("GDP (y)", "Seasonally adjusted GDP (yhat)"), lty = c(3,
+1))
+
+```
+We can also use the last 4 quarters moving average of GDP
+
+
+```{r}
+library(zoo)
+library(xts)
+y_ma = rollmeanr(y, k = 4, fill = NA, align = "right")
+plot(y_ma)
+```
+
+## Exercise
+
+1. Take consumption (or any other) data from statistics Denmark
+(seasonally unadjusted) - test for seasonality in the data
+
+
+
+
+2. Adjust the data for seasonality using the dummy variable method
+
+
+
+# Long run detrending
+
+```{r}
+bnp = ts(yhat, start = 1995, frequency = 4) # note I use seasonally adjusted series for GDP
+tid = ts(1:length(bnp), start = 1995, frequency = 4)
+```
+
+```{r}
+summary(y.reg <- lm(bnp ~ tid))
+```
+
+
+
+```{r}
+ty = ts(residuals(y.reg),start = 1995, frequency = 4)
+ty1 = ty + y[1]
+
+plot(ty1, type= "l")
+```
+
+```{r}
+trend = fitted.values(y.reg)
+
+```
+
+
+```{r}
+ts.plot(bnp, trend, ty1, lty = c(1, 2), lwd = c(2, 2, 2), xlab = "Year",
+col = c("black", "red", "blue"));legend(1995, max(bnp), c("Real GDP (original series)", "trend", "Real GDP (detrended series)"),lty = 1:3)
+```
+## Exercise
+
+1. Now use your seasonality adjusted consumption data and test for
+linear trend in the data? If there is a trend, de-trend you consumption
+
+
+2. Before you analyse the series for trend, do you see trend in the data?
+
+
+
+## HP filter
+
+
+```{r}
+library(mFilter)
+lambda <- 1600
+hp = hpfilter(bnp, lambda)
+hptrend <- hp$trend
+```
+
+
+```{r}
+hpy = ts((bnp - hptrend), start=1995, frequency=4)
+hpy1 <- hpy + y[1]
+```
+
+
+```{r}
+ts.plot(bnp, hptrend, hpy1, lwd=c(1,1,1), lty=c(3,1,1), xlab="Year", col=c("black", "red", "blue"))
+legend(1995, max(bnp), c("GDP (y)", "HP-trend", "Detrended GDP (hpy)"),
+lty=c(3,1,1), col=c("black", "red", "blue"))
+
+```
+
+
+## differentiating 
+
+
+```{r}
+dy=diff(bnp, 1)
+ts.plot(hpy,dy,ty, lwd=c(1,1,1), col=c('red','black', 'blue') ,xlab="year",main="Cyclical Output")
+```
+
+### Exercise
+
+1. Now de-trend your consumption via differencing and plot the three
+detrended time series
+
+2. Now take the Danish GDP data and calculate output gap?
+
+3. There was a financial crisis in 2008, some researchers use the
+pre-crisis trend in GDP to calculate output loss as a result of the crisis
+Assume you are employed by IMF and you are given the task to
+calculate the output loss of Denmark as a result of the financial crisis
+in 2008. Can you plot and report the output loss of Denmark?
+
+
+
+
+
+### Exercise
+
+```{r}
+bnp <-ts(bnp, start =c(1995, 1), freq = 4)
+
+plot(bnp)
+```
+
+
+Can you find the impact of Covid-crisis on Danish real GDP?
+
+```{r}
+bnp_pre =window(bnp, start =c(2010, 1), end =c(2019, 4), freq = 4)
+```
+
+
+
+```{r}
+lambda = 1600
+hp =hpfilter(bnp_pre, lambda)
+trend = hp$trend
+```
+
+
+```{r}
+length(trend)
+```
+
+
+```{r}
+mean(diff(log(trend)))
+```
+
+```{r}
+n =c(1:10)
+x = 535.1649 * (1 + 0.00466)^n
+```
+
+```{r}
+bnp1 <-ts(bnp, start=c(1995,1), end=c(2022,2), freq=4)
+bnp1[101:110] = x
+```
+
+```{r}
+plot(bnp1, col="red", t="l",  lwd=3);lines(bnp, t="l", lwd=3)
+```
+

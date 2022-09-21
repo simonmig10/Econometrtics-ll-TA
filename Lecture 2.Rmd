@@ -1,0 +1,27 @@
+---
+title: "Lecture 2"
+output: html_document
+date: "2022-09-20"
+---
+
+# calculating cyclical correlation 
+
+
+Recall from lecture 1: ty was our detrended series using linear
+detrending method hpy was our detrended series using HP filter
+
+```{r}
+library(stats)
+
+plot(ty, type="l")
+plot(hpy, type="l")
+```
+
+```{r}
+cc <- ccf(as.numeric(ty),as.numeric(hpy), lag.max=1, pl = F)
+```
+
+```{r}
+plot(cc, ci=0.95, ylab="", xlab="", main="") 
+```
+
