@@ -1,0 +1,335 @@
+---
+title: "Lecture 3"
+author: "Simon"
+date: "27/9/2022"
+output: html_document
+---
+
+# Lecture 2
+
+## Autoregresive process
+
+```{r}
+set.seed(213)
+n=500
+e <- rnorm(n, mean = 0, sd = 1.5)
+Y <- rnorm(1)
+for (t in 2:n) {
+Y[t] <- 0.1*Y[t-1]+e[t]
+}
+ts.plot(Y, main=expression(paste("AR(1) process with ", theta, "=0.1")), xlab="")
+```
+
+```{r}
+ar.sim <- arima.sim(model = list(ar = c(0.6, -0.3)), n = 100) + 5
+plot(ar.sim)
+```
+
+
+# Lecture 3
+
+##Quick recap
+
+```{r}
+TT <- 500; mean=0; sd=1
+Xt <- ts(rnorm(TT, mean, sd), start=1, freq=1)
+Ct <- ts(cumsum(rnorm(TT)), start=1, freq=1)
+ts.plot(Ct, Xt, lty=2:1)
+legend("topleft", c("Ct is non stationary", "Xt is stationary"), lty=2:1)
+```
+
+
+
+## Random walk
+
+**Without drift or trend**
+
+```{r}
+set.seed(154)
+e = rnorm(500,0,1) # e is white noise
+y <- 0
+for (t in 2:500) {
+y[t] <- y[t-1] + e[t]
+}
+yd = ts(diff(y), start=1, frequency = 1) # I make it stationay by differncing
+ts.plot(y[-1], yd, lty=2:1, main = "Random walk process without drift", xlab="")
+```
+
+
+**With drift**
+
+```{r}
+set.seed(154)
+e = rnorm(500,0,1) # e is white noise
+y <- 0
+mu <- 0.1 # stochastic trend is + so the series will trend upwards
+for (t in 2:500) {
+y[t] <- mu + y[t-1] + e[t]
+}
+yd = ts(diff(y), start=1, frequency = 1) # I make it stationay by differncing
+ts.plot(y[-1], yd, main = "Random walk process with drift", xlab="")
+```
+
+
+
+**With trend**
+
+
+```{r}
+set.seed(213)
+n=500
+e <- rnorm(n, mean = 0, sd = 1.5)
+Y <- rnorm(1)
+mu <- 0.1
+t=1:n
+for (t in 2:n) {
+Y[t] <- mu + 0.5*Y[t-1] + e[t] + 0.1*t
+}
+
+yd = ts(diff(Y), start=1, frequency = 1) # I make it stationay by differncing
+
+ts.plot(Y[-1], yd, main = "Random walk process with drift", xlab="")
+```
+
+
+
+## Lag operators
+
+Exercise: Can you invert an MA(1) process into AR(1)?
+
+- Start by writting the MA(1) model: 
+
+$$Y_t= \varepsilon_t - aL \varepsilon_t$$
+
+We can move $\varepsilon_t$ outside the parenthsis:
+
+$$Y_t= \varepsilon_t (1-aL)$$
+We can now isolate $\varepsilon_t$
+
+$$\frac{Y_t}{(1-aL)}= \varepsilon_t$$
+
+We can now use the geometric rule: 
+
+
+$$\varepsilon_t= (aL)^0*Y_t + (aL)^1*Y_t + (aL)^2*Y_t + (aL)^n*Y_t$$
+
+We can apply the rule for Lag operator: 
+
+$$\varepsilon_t= Y_t + a^1*Y_{t-1} + a^2*Y_{t-2} + a^n*Y_{t-n}$$
+Isolate $Y_t$
+
+$$Y_t= \varepsilon_t - a^1* Y_{t-1} - a^2 * Y_{t-2} - a^n * Y_{t-n}$$
+
+
+
+
+## Autocorrelation function (ACF)
+
+
+```{r}
+TT <- 200
+acf(arima.sim(model=list(ar=0.9), n=TT), ylab=expression(Y[t]),
+main=expression(paste("AR model with ", theta, "=0.9")))
+```
+
+```{r}
+TT <- 200
+acf(arima.sim(model=list(ar=-0.9), n=TT), ylab=expression(Y[t]),
+main=expression(paste("AR model with ", theta, "=-0.9")))
+```
+
+
+
+```{r}
+TT <- 200
+acf(arima.sim(model=list(ma=0.9), n=TT), ylab=expression(Y[t]),
+main=expression(paste("MA model with ", theta, "=0.9")))
+```
+
+
+```{r}
+TT <- 200
+acf(arima.sim(model=list(ma=-0.9), n=TT), ylab=expression(Y[t]),
+main=expression(paste("MA model with ", theta, "=-0.9")))
+```
+
+
+
+
+## Partial correlation function (PACF)
+
+
+```{r}
+TT <- 200
+x= arima.sim(model=list(ar=0.9), n=TT)
+acf(x, ylab=expression(Y[t]), main= expression(paste("ACF of AR model with ", theta, "=0.9")))
+pacf(x, ylab=expression(Y[t]), main= expression(paste("PACF of AR model with ", theta, "=0.9")))
+```
+
+
+```{r}
+TT <- 200
+x= arima.sim(model=list(ar=-0.9), n=TT)
+acf(x, ylab=expression(Y[t]), main= expression(paste("ACF of AR model with ", theta, "=-0.9")))
+pacf(x, ylab=expression(Y[t]), main= expression(paste("PACF of AR model with ", theta, "=-0.9")))
+```
+
+
+
+
+
+```{r}
+TT <- 200
+x= arima.sim(model=list(ma=0.9), n=TT)
+acf(x, ylab=expression(Y[t]), main= expression(paste("ACF of MA model with ", theta, "=0.9")))
+pacf(x, ylab=expression(Y[t]), main= expression(paste("PACF of MA model with ", theta, "=0.9")))
+```
+
+
+```{r}
+TT <- 200
+x= arima.sim(model=list(ma=-0.9), n=TT)
+acf(x, ylab=expression(Y[t]), main= expression(paste("ACF of MA model with ", theta, "=-0.9")))
+pacf(x, ylab=expression(Y[t]), main= expression(paste("PACF of MA model with ", theta, "=-0.9")))
+```
+
+
+## Exercise 
+
+Generate a white noise series, an AR(1) series and an AR(2) series. Compare the ACFs and PACFs of these 3 series. Do the ACFs and PACFs actually help you to distinguish between the different series? That is, are you able to identify the order of the AR(p) processes by looking at their ACFs and PACFs?
+
+
+
+**White noise** 
+
+```{r}
+set.seed(123)
+
+e <- rnorm(n, mean = 0, sd = 1.5)
+pacf(e)
+acf(e)
+```
+
+
+**AR(1)**
+
+
+```{r}
+ar_1= arima.sim(model=list(ar=0.5), n=200)
+pacf(ar_1)
+acf(ar_1)
+```
+
+
+
+**AR(2)**
+
+```{r}
+ar_2= arima.sim(model=list(ar=c(0.5,0.4)), n=200)
+pacf(ar_2)
+acf(ar_2)
+```
+
+
+
+Use the ACF and PACF to describe two actual data series. Take two of the series that you used in Exercise #1.
+
+
+```{r}
+library(readxl)
+data <- read_excel("data.xlsx")
+data=lapply(data, function(t) ts(t, start=c(1950, 1), end=c(2018, 1),frequency=4))
+
+credit= real_Credit
+house_p= `real house prices`
+stock_p= `stock prices`
+bnp= real_gdp
+```
+
+
+```{r}
+library(mFilter)
+
+# credit
+
+lambda <- 1600
+hp1 = hpfilter(credit, lambda)
+hptrend1 <- hp1$trend
+
+
+#Stock prices
+hp2 = hpfilter(stock_p, lambda)
+hptrend2 <- hp2$trend
+
+#Real house
+hp3 = hpfilter(house_p, lambda)
+hptrend3 <- hp3$trend
+
+#real gdp
+hp4 = hpfilter(bnp, lambda)
+hptrend4 <- hp4$trend
+```
+
+
+```{r}
+
+# REal credit
+real_cred_det=credit - hptrend1
+real_cred_det1 <- real_cred_det + credit[1]
+
+
+#Stock prices
+stock_price_det = stock_p- hptrend2
+stock_price_det1 <- stock_price_det + stock_p[1]
+
+#Real house
+
+real_house_det = house_p- hptrend3
+real_house_det1 <- real_house_det + `real house prices`[1]
+#real gdp
+
+real_gdp_det = bnp- hptrend4
+real_gdp_det1 <- real_gdp_det + real_gdp[1]
+```
+
+
+
+
+**ACF and PACF**
+
+
+```{r}
+## Credit
+
+acf(real_cred_det1)
+pacf(real_cred_det1)
+```
+
+Ligner en AR(2)
+
+
+```{r}
+## Stock prices
+
+acf(stock_price_det1)
+pacf(stock_price_det1)
+```
+
+
+Ligner AR(2)
+
+```{r}
+## House P
+
+acf(real_house_det1)
+pacf(real_house_det1)
+```
+
+Ligner også en AR(2)
+
+```{r}
+## Bnp
+
+acf(real_gdp_det1)
+pacf(real_gdp_det1)
+```
