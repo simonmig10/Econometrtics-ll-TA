@@ -176,8 +176,6 @@ pacf(x, ylab=expression(Y[t]), main= expression(paste("PACF of AR model with ", 
 
 
 
-
-
 ```{r}
 TT <- 200
 x= arima.sim(model=list(ma=0.9), n=TT)
@@ -239,6 +237,8 @@ Use the ACF and PACF to describe two actual data series. Take two of the series 
 library(readxl)
 data <- read_excel("data.xlsx")
 data=lapply(data, function(t) ts(t, start=c(1950, 1), end=c(2018, 1),frequency=4))
+
+attach(data)
 
 credit= real_Credit
 house_p= `real house prices`
@@ -333,3 +333,7 @@ Ligner også en AR(2)
 acf(real_gdp_det1)
 pacf(real_gdp_det1)
 ```
+
+
+Tough one, could be an Arima(1,0,1)
+
