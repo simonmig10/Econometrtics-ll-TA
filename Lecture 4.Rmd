@@ -221,6 +221,8 @@ vars_out_1
 linearHypothesis(model_start, vars_out_1, rep(0, length(vars_out_1)))
 
 ```
+
+
 ```{r}
 model <- dynlm(diff(bnp) ~ 1 + L(bnp, 1) + L(diff(bnp), c(1,2,8,9)) + trend(diff(bnp)))
 summary(model)
@@ -228,7 +230,7 @@ summary(model)
 
 
 
-We cccan now test for serial correlation, we use the funcktion Hamid created 
+We can now test for serial correlation, we use the funcktion Hamid created 
 
 ```{r}
 arpdiag <- function(series, lags) {
@@ -260,6 +262,167 @@ We have removed serial correlaion, lets go!
 ### Exercise 
 
 
+**Perform Augmented-DF (ADF) test on Danish GDP Make sure there is no serial correlation in your model when you compare your t statistics values with the critical values in Enders Make sure you increase the power of the test by including as less number of lags as possible (you can either start with minimum no. of lags and keep adding lags OR you can start with the highest number of lags and start reducing step by step.)**
+
+```{r}
+model_start <- dynlm(diff(bnp_dk_de) ~ 1 + L(bnp_dk_de, 1) + L(diff(bnp_dk_de), 1:12) + trend(diff(bnp_dk_de)))
+summary(model_start)
+```
+
+```{r}
+ vars_1 <- str_c("L(diff(bnp_dk_de), 1:12)", c(2:12))
+```
+
+```{r}
+
+
+vars_out_1 <- c(vars_1)
+vars_out_1
+ 
+linearHypothesis(model_start, vars_out_1, rep(0, length(vars_out_1)))
+
+```
+
+
+```{r}
+model <- dynlm(diff(bnp_dk_de) ~ 1 + L(bnp_dk_de, 1) + L(diff(bnp_dk_de), c(1)) + trend(diff(bnp_dk_de)))
+summary(model)
+
+library(urca)
+
+model <- ur.df(bnp_dk_de, lags = 1, type = "trend")
+summary(model)
+```
+We need to test for serial correlation to make sure the standard error is not biased. 
+
+```{r}
+res_model= residuals(model)
+arpdiag(res_model, 12)
+```
+
+Seems like one lag was enough! But we fail to reject H0 that there is unit root, and will now take the first difference. 
 
 
 
+```{r}
+diff_bnp_dk_de= diff(bnp_dk_de)
+```
+
+```{r}
+model_start <- dynlm(diff(diff_bnp_dk_de) ~ 1 + L(diff_bnp_dk_de, 1) + L(diff(diff_bnp_dk_de), 1:12))
+summary(model_start)
+```
+
+```{r}
+ vars_1 <- str_c("L(diff(diff_bnp_dk_de), 1:12)", c(1:12))
+```
+
+```{r}
+
+
+vars_out_1 <- c(vars_1)
+vars_out_1
+ 
+linearHypothesis(model_start, vars_out_1, rep(0, length(vars_out_1)))
+
+```
+
+
+```{r}
+model <- dynlm(diff(diff_bnp_dk_de) ~ 1 + L(diff_bnp_dk_de, 1))
+summary(model)
+```
+```{r}
+res_model= residuals(model)
+arpdiag(res_model, 12)
+```
+No serial correlation, so it seems like its an I(1) variable!
+
+
+
+**What is you conclusion regarding unit root?**
+
+The varialbe is I(1) as we have to differentiate to make it stationary
+
+
+
+
+**Which stochastic process best describes the Danish GDP, randomwalk with drift or a pure random walk? What is your educated guess before even performing the test?**
+
+Random walk with a drift, As we can see the mean is increasing over time!
+And we can see the mean of the differentiated variable is different than 0
+
+```{r}
+plot(bnp_dk_de)
+
+plot(diff_bnp_dk_de);mean(diff_bnp_dk_de)
+```
+
+
+
+## Phillips Peron test
+
+```{r}
+TT <- 200
+x = rnorm(TT)
+Yt <- ts(cumsum(x))
+PP.test(Yt)
+
+```
+
+
+```{r}
+plot(bnp);abline(v=2009, lwd=2, col="red")
+```
+
+## Structural breaks
+
+```{r}
+library(urca)
+test <- ur.za(bnp, model = c("both"), lag=12)
+summary(test)
+```
+
+
+## Exercise 
+
+**Perform PP test on Danish GDP**
+
+```{r}
+PP.test(bnp_dk_de)
+```
+
+
+**Perform unit root structural break on Danish GDP**
+
+```{r}
+struc_model <- ur.za(bnp_dk_de, model = c("both"), lag=1)
+summary(struc_model)
+```
+
+```{r}
+res_struc_model= struc_model@testreg$residuals
+arpdiag(res_struc_model, 12)
+```
+
+
+We need to differentiate
+
+```{r}
+struc_model_diff <- ur.za(diff_bnp_dk_de, model = c("intercept"), lag=0)
+summary(struc_model_diff)
+```
+
+```{r}
+res_struc_model_diff= struc_model_diff@testreg$residuals
+arpdiag(res_struc_model_diff, 12)
+```
+
+**Is there a break in trend?**
+
+
+**Is there a break in intercept?**
+
+**Is there a unit root in the data?**
+
+Yes!
