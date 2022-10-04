@@ -296,7 +296,7 @@ summary(model)
 We need to test for serial correlation to make sure the standard error is not biased. 
 
 ```{r}
-res_model= residuals(model)
+res_model= model@testreg$residuals
 arpdiag(res_model, 12)
 ```
 
@@ -332,6 +332,7 @@ linearHypothesis(model_start, vars_out_1, rep(0, length(vars_out_1)))
 model <- dynlm(diff(diff_bnp_dk_de) ~ 1 + L(diff_bnp_dk_de, 1))
 summary(model)
 ```
+
 ```{r}
 res_model= residuals(model)
 arpdiag(res_model, 12)
