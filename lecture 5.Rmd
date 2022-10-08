@@ -1,0 +1,264 @@
+---
+title: "Lecture 5"
+output: html_document
+date: "2022-10-08"
+---
+
+
+# The general ARMA(p,q) process
+
+
+# The box Jenkins Methodology
+
+```{r}
+library(forecast)
+library(strucchange)
+library(Quandl)
+library(tstools)
+```
+
+
+```{r}
+bnp = Quandl("FRED/GDPC1", start_date="1970-01-01", end_date="2018-12-01", type="ts")
+bnp=ts(bnp, start=c(1970,1), end=c(2018,4), frequency = 4) # format as a time series object
+plot(bnp)
+```
+
+
+```{r}
+bnp=ts(bnp, start=c(1970,1), end=c(2018,4), frequency = 4) ; Ytd=diff(bnp)
+acf(Ytd); pacf(Ytd)
+```
+
+
+
+Hamid guesses its ARIMA(2,1,1)
+
+```{r}
+arima212 = Arima(bnp, order = c(2, 1, 2))
+AIC(arima212)
+BIC(arima212)
+```
+
+```{r}
+arima211 = Arima(bnp, order = c(2, 1, 1))
+AIC(arima211)
+BIC(arima211)
+```
+```{r}
+arima210 = Arima(bnp, order = c(2, 1, 0))
+AIC(arima210)
+BIC(arima210)
+res210 = residuals(arima210)
+
+```
+
+```{r}
+auto.arima(bnp, trace = TRUE)
+```
+
+
+```{r}
+mymodel = auto.arima(bnp)
+mymodel
+```
+
+Stationarity:
+
+```{r}
+autoplot(mymodel)
+```
+
+
+
+## Exercise
+
+**Use the Danish quartely GDP that you have worked with in the previous lectures**
+
+```{r}
+library(readxl)
+Danish_GDP <- read_excel("Danish_GDP.xlsx")
+
+bnp_dk= ts(Danish_GDP$bnp, start= c(1995,1), end = c(2022,2), frequency = 4)
+```
+
+First seasonalize the data: 
+
+```{r}
+X <- cycle(bnp_dk)
+q1 <- ifelse(X == "1", 1, 0)
+q2 <- ifelse(X == "2", 1, 0)
+q3 <- ifelse(X == "3", 1, 0)
+q4 <- ifelse(X == "4", 1, 0)
+```
+
+
+```{r}
+summary(bnp_dk.reg <- lm(bnp_dk ~ q1 + q2 + q3)); mean_bnp_dk= mean(bnp_dk)
+```
+
+```{r}
+bnp_dk_de=ts(residuals(bnp_dk.reg)+mean_bnp_dk, start =c(1995,1), frequency = 4)
+```
+
+
+
+
+
+**Which ARIMA model best describes your time series?**
+
+```{r}
+minmodel = auto.arima(bnp_dk_de)
+minmodel
+```
+
+
+```{r}
+autoplot(minmodel)
+```
+
+
+
+
+### Diagnostics
+
+**Serial correlation**
+
+
+```{r}
+library(stats)
+```
+
+```{r}
+par(mar=c(2,2,3,1)); par(mfrow=c(1,3))
+tsdiag(mymodel, gof.lag=12) # tests the model up to 12 lags for serial correlation
+```
+
+
+```{r}
+res=residuals(mymodel)
+Box.test(res, lag = 20, type = "Ljung-Box")
+```
+
+
+**ARCH**
+
+```{r}
+arpdiag <- function(series, lags) {
+x <- mat.or.vec(lags, 1)
+y <- mat.or.vec(lags, 1)
+y <- y + 0.05
+for (i in 1:lags) {
+x[i] <- Box.test(series, lag = i, type = "Ljung-Box")$p.value
+}
+plot(x, xlab = "Lags", ylab = "p-value H0: no
+Autocorrelation", type = "p",
+main = "Ljung-Box Test for
+Autocorrelation", ylim = c(0, 1))
+axis(1, 1:lags)
+abline(0.05, 0, lty = 2, col = "blue")
+}
+
+```
+
+
+```{r}
+arpdiag((res^2), lags=12)
+
+```
+
+
+**Normality**
+
+
+```{r}
+shapiro.test(res)
+
+```
+
+
+```{r}
+checkresiduals(res)
+```
+
+Ser ud til det er 2008 Q4
+
+
+Create dummy
+
+
+```{r}
+d_2008=create_dummy_ts(start_basic = c(1970, 1), end_basic=c(2018,4),
+dummy_start=c(2008,4), dummy_end = c(2008,4),
+basic_value = 0, dummy_value = 1, frequency = 4)
+
+
+mymodel1 = Arima(bnp, order = c(2, 1, 0), seasonal = list(order = c(1, 0, 2)),
+include.drift=TRUE, xreg=d_2008) # xreg is used to include exogenous regressors
+
+
+checkresiduals(minmodel)
+```
+
+
+
+```{r}
+library(tseries)
+
+shapiro.test(residuals(mymodel1))
+jarque.bera.test(residuals(mymodel1))
+
+```
+
+
+**Strucural break check**
+
+```{r}
+break_point <- breakpoints(Ytd ~ 1)
+summary(break_point)
+```
+
+```{r}
+plot(Ytd); lines(fitted(break_point, breaks = 1), col = 4)
+lines(confint(break_point, breaks = 1))
+```
+
+
+
+# Arima forecast
+
+
+Forecasting model with 2008 dummy
+
+```{r}
+ahead <- 20 # future values for forecasting
+futurVal <- forecast(mymodel1, h=ahead, level=c(97.5), xreg = rep(0, ahead))
+plot(futurVal)
+
+```
+
+
+Forecasting without 2008 dummy
+```{r}
+ahead <- 24 # future values for forecasting
+pred <- forecast(mymodel, h=ahead)
+plot(pred, xlim=c(2000,2020), ylim=c(12000, 20000))
+
+```
+
+
+
+```{r}
+hold <- window(bnp, start=c(2016,1))
+bnp_a <- window(bnp, end=c(2015,4))
+mymodel_a= Arima(bnp_a, order = c(2, 1, 0), seasonal = list(order = c(1, 0, 2)), include.drift=TRUE)
+pred <- forecast(mymodel_a, h=12)
+plot(pred, xlim=c(2000,2018), ylim=c(12000, 20000), lwd=3)
+lines(bnp, col="red", lwd=3)
+
+```
+
+
+
+
+
