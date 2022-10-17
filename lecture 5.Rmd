@@ -234,7 +234,6 @@ Forecasting model with 2008 dummy
 ahead <- 20 # future values for forecasting
 futurVal <- forecast(mymodel1, h=ahead, level=c(97.5), xreg = rep(0, ahead))
 plot(futurVal)
-
 ```
 
 
