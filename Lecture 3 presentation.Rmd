@@ -345,6 +345,8 @@ $$Cov(X,Y) = E[X-E(X)][Y-E(Y)]= E(XY) - E(X)E(Y)$$
 
 # Moving Average process opsumering: 
 
+## Mean og Varians
+
 
 $$Y_t = \mu + \varepsilon_t + \alpha \varepsilon_{t-1}$$
 
@@ -358,3 +360,23 @@ $$E[Y_t] = E[\mu]  E[\varepsilon_t] + E[\alpha \varepsilon_{t-1}]$$
 
 $$E[Y_t] = \mu$$
 
+
+## Mean og varians
+
+
+- Calculate the variance 
+
+$$Var[Y_t] = E[(Y_t - \mu)^2]$$
+
+$$E[(\varepsilon_t + \alpha \varepsilon_{t-1})^2]$$
+
+$$E[\varepsilon_t^2  + 2\alpha \varepsilon_t \varepsilon_{t-1} + \alpha^2\varepsilon_{t-1}^2]$$
+
+$$E[\varepsilon_t^2]  + 2\alpha E[\varepsilon_t \varepsilon_{t-1}] +  \alpha^2 E[\varepsilon_{t-1}^2]$$
+
+- Hvorfor ved vi $2\alpha E[\varepsilon_t \varepsilon_{t-1}] = 0$?
+
+
+$$E[\varepsilon_t^2] + \alpha^2 E[\varepsilon^2_{t-1}]$$
+
+$$(1 + \alpha^2) \sigma^2$$
