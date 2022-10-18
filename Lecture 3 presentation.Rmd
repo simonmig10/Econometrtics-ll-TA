@@ -14,7 +14,185 @@ output:
 ---
 
 
-# Geometric series
+
+
+
+# Statistik opsumering
+
+
+## Expected value
+
+$$E(aX + b) = aE(X) + b$$
+$$E(X+Y)= E(X)E(Y)$$
+
+$$E(XY)= E(X)E(Y)$$
+
+- Hvis X og Y er uafhæængige 
+
+- Bevis for dette behøves i ik at kende 
+
+## Variance 
+
+$$Var(X) = E[X-E(X)]^2 = E(XX) - E(X)E(X)$$
+
+- Vi kan se hvis $E(X)=0$ er $Var(X) = E(X^2)$
+
+- Bevis ovenstående
+
+$$Var(aX+b) = a^2 Var(X)$$
+$$Var(X + Y) = Var(X) + Var(Y) + 2Cov(X,Y)$$
+
+- Bevis ovenstående
+$$Var(X + Y) = Var(X) + Var(Y)$$
+
+- Hvis X og Y er uafhængige
+
+
+
+
+## Bevis for Var(X)
+
+$$Var(X) = E[X-E(X)]^2 = E(XX) - E(X)E(X)$$
+
+
+- Løs på tavlen 
+
+
+## Bevis for Var(X+Y)
+
+
+$$Var(X+Y) = Var(X) + Var(Y) + 2Cov(X,Y)$$
+
+
+## Covariance 
+
+$$Cov(X,Y) = E[X-E(X)][Y-E(Y)]= E(XY) - E(X)E(Y)$$
+
+- Bevis ovenstående
+
+$$Cov(X,X) = Var(X)$$
+
+$$Cov(aX + b, cY + d) = acCov(X,Y)$$
+
+$$Cov(X + Y, Z) = Cov(X,Z) + Cov(Y,Z)$$
+
+
+
+## Bevis Cov(X,Y)
+
+$$Cov(X,Y) = E[X-E(X)][Y-E(Y)]= E(XY) - E(X)E(Y)$$
+
+- Løs på tavlen
+
+
+# Moving Average process opsumering: 
+
+## Mean, varians og Covariance
+
+
+$$Y_t = \mu + \varepsilon_t + \alpha \varepsilon_{t-1}$$
+$$\varepsilon_t \sim IID(0, \sigma^2)$$
+
+- Calculate mean of $Y_t$
+
+$$E[Y_t] = E[\mu]  E[\varepsilon_t] + E[\alpha \varepsilon_{t-1}]$$
+
+- Vi ved $E[\varepsilon_t] = E[\varepsilon_{t-1}] = 0$
+
+$$E[Y_t] = \mu$$
+
+
+## Mean, varians og Covariance
+
+$$Y_t = \mu + \varepsilon_t + \alpha \varepsilon_{t-1}$$
+$$\varepsilon_t \sim IID(0, \sigma^2)$$
+
+
+- Calculate the variance 
+$$Var[Y_t] = E[(Y_t - \mu)^2]$$
+$$=E[(\varepsilon_t + \alpha \varepsilon_{t-1})^2]$$
+$$=E[\varepsilon_t^2  + 2\alpha \varepsilon_t \varepsilon_{t-1} + \alpha^2\varepsilon_{t-1}^2]$$
+$$=E[\varepsilon_t^2]  + 2\alpha E[\varepsilon_t \varepsilon_{t-1}] +  \alpha^2 E[\varepsilon_{t-1}^2]$$
+
+- Hvorfor ved vi $2\alpha E[\varepsilon_t \varepsilon_{t-1}] = 0$?
+- Hvad sker der med $E[\varepsilon_t^2]$ og $E[\varepsilon_{t-1}^2]$, og hvorfor?
+
+$$=E[\varepsilon_t^2] + \alpha^2 E[\varepsilon^2_{t-1}]$$
+$$(1 + \alpha^2) \sigma^2$$
+
+
+## Mean, varians og Covariance
+
+$$Y_t = \mu + \varepsilon_t + \alpha \varepsilon_{t-1}$$
+$$\varepsilon_t \sim IID(0, \sigma^2)$$
+- Calculate autocovariance between $Y_t$ and $Y_{t-1}$
+
+$$Cov[Y_t,Y_{t-1}] = E[(Y_t-\mu)*(Y_{t-1} - \mu)]$$
+$$E[(\varepsilon_t + \alpha \varepsilon_{t-1}) (\varepsilon_{t-1} + \alpha \varepsilon_{t-2})]$$
+- Vis på tavlen 
+$$\alpha E[\varepsilon_{t-1}]$$
+
+$$\alpha \sigma^2$$
+
+## Mean, Variance og Covariance
+
+- Calculate autocovariance between $Y_t$ and $Y_{t-2}$
+
+$$Cov[Y_t,Y_{t-1}] = E[(Y_t-\mu)*(Y_{t-2} - \mu)]$$
+$$= E[(\varepsilon_t + \alpha \varepsilon_{t-1}) (\varepsilon_{t-2} + \alpha \varepsilon_{t-3})]$$
+
+- Samme metode som vist på tavlen før:
+
+$$=0$$
+
+
+## MA(1) Simulation 
+
+$$Y_t = 2 + \varepsilon_t + 0.9 \varepsilon_{t-1}$$
+$$\varepsilon_t \sim IID(0, 1.5^2)$$
+
+```{r, echo=F, fig.width=7, fig.height=4}
+n=500 # set time period to 500 obs
+e <- rnorm(n, mean=0, sd=1.5) # purely random process with mean 0 and sd = 1.5
+mu=2 # we set mu= 2
+y <- c()
+for (t in 2:n) {
+y[t] <- mu + e[t] + 0.9*e[t-1] # Note: we set alpha = 0.9$
+y <- y[!is.na(y)]
+}
+ts.plot(y, main=expression(paste("MA(1) process with ", alpha, "=0.9")), xlab="")
+```
+
+
+```{r}
+mean(y) 
+var(y) 
+cov(y[-length(y)],y[-1])
+```
+
+
+$$E(y_t)= \mu= 2$$
+
+$$V(y_t)= (1+\alpha^2)\sigma^2$$
+$$V(y_t)= (1+ 0.9^2)1.5^2$$
+$$V(y_t)= (1+ 0.9^2)1.5^2 = 4.0725$$
+
+$$Cov= \alpha* \sigma^2$$
+$$Cov= 0.9* 1.5^2= 2.025$$
+
+
+
+# Auto regressive Processes opsumering
+
+
+$$Y_t = \mu  + \theta Y_{t-1}+ \varepsilon_t$$
+$$\varepsilon_t \sim IID(0, \sigma^2)$$
+
+- Værktøjer vi skal bruge til properties af AR-modeller: 
+
+1. Geometriske serier. 
+
+2. Difference ligninger. 
 
 
 ## Geometriske serier review - Eksempler på serier
@@ -29,6 +207,11 @@ $$\sum^n_{n=1} x^n=x + x^2 + x^3 + x^4 +...+x^{n-1}$$
 $$x + \sqrt{x} + 1 + \frac{1}{\sqrt{x}} + \frac{1}{x} ... $$
 
 ## Typer af geometriske serier
+
+Note til senere: 
+
+- $a= \mu$
+- $k = \theta$
 
 ### Endelig serie
 
@@ -49,11 +232,8 @@ $\sum^n_{n=1} ak^n = na$,   $\lvert k \rvert  =1$
 
 $$S_n = \alpha + \alpha*k + \alpha*k^2 + \alpha*k^3 + ... + \alpha*k^{n-1}$$
 $$k*S_n = \alpha*k + \alpha*k^2 + \alpha*k^3 + \alpha*k^4 + ... + \alpha*k^{n}$$
-
 $$S_n - k*S_n = \alpha + (\alpha*k - \alpha*k) + (\alpha*k^2- \alpha*k^2) + ... + (\alpha*k^{n-1} - \alpha*k^{n-1}) - \alpha*k^{n}$$
-
 $$S_n - k*S_n = \alpha - \alpha*k^{n}$$
-
 $$S_n(1-k) = \alpha(1-k^n)$$
 
 $$S_n = \alpha * \frac{1-k^n}{1-k}$$
@@ -70,20 +250,18 @@ Dermed kan vi skrive:
 
 $$ \sum_{n=1}^\infty = \frac{ \alpha}{1-k}$$
 
-# Difference equations
+## Difference equations: Math to econometrics
 
-
-## Math to econometrics
-
-Today we will look at 1. order difference equations
+Looking at a 1. order difference equations
 
 In 2. semester math seen like this: 
 
 $$x_t = ax_{t-1} + b$$
-In time series econometrics you will see it like this, called an AR(1) process: 
+In time series econometrics you have seen it like this (AR(1) process): 
 
 $$y_t= \mu + \theta y_{t-1} + \varepsilon_t$$
-We will look at what differences between these two equations
+
+What are the differences?
 
 Lets first see what they got in common:
 
@@ -94,12 +272,12 @@ Lets first see what they got in common:
 - Both equations got a variable that changes over time (discrete) $y_t$ and $x_t$
 
 
-## Math to econometrics
+## Difference equations: Math to econometrics
 
-The difference between the two equations is that in econometrics we got the error term $\varepsilon_t$ with the diffenition:
+**The difference is the error term $\varepsilon_t$ with the diffenition:**
 
 $$\varepsilon_t \sim IID(0,\sigma^2)$$
-Explain! 
+Identical, Independent Distributed med $mean = 0$ og $Var= \sigma^2$
 
 Later we take a look at how this changes things!
 
@@ -121,7 +299,7 @@ We can already see the pattern:
 
 $$x_t= a^t x_0 + \sum^t_{k=1} a^{t-k} b_k$$
 
-We now assume the case when $b_k = b$ so we now got a constant as in the AR(1) model.
+We now assume the case when $b_k = b$ so we now got a constant as in the AR(1) model (fixed over time).
 
 So we can now write the last term as:
 
@@ -167,14 +345,17 @@ And we will end up with
 
 $$x_t= \frac{b}{1-a}$$
 
+## Difference equations (stability)
+
 ### Case 2
 
 $$\vert a \vert > 1$$
 
-We then see that $a^t$ goes towards $\infty$ as $t \to \infty$ in and will explode. 
+- We then see that $a^t$ goes towards $\infty$ as $t \to \infty$ in and will explode.
 
 
-**But what if x_0 start below and we hit the value it should just stop right? Eller er det umuligt vil den eksplodere ned af i stedet?**
+- Lets look at the different scenarios
+
 
 ## Difference equations (stability)
 
@@ -194,9 +375,10 @@ Where the only difference was the error term: $\varepsilon_t$ lets see some exam
 
 To give an example we use the model:
 $$y_t= 5 +  0.5y_{t-1}+\varepsilon_t$$
+With start value $y_0=0$
 
 ### Simulering
-```{r, echo=FALSE, fig.height= 3.5}
+```{r, echo=FALSE, fig.height= 3.3}
 suppressPackageStartupMessages(library(forecast))
 # Set up variables
 set.seed(1234)
@@ -274,109 +456,3 @@ $$y_t= 5 +  0.5y_{t-1}+\varepsilon_t$$
 $$E[y_t]= \frac{5}{1-0.5} = 10$$
 
 Lets look at the plot again!
-
-# Statistik opsumering
-
-
-## Expected value
-
-$$E(aX + b) = aE(X) + b$$
-$$E(X+Y)= E(X)E(Y)$$
-
-$$E(XY)= E(X)E(Y)$$
-
-- Hvis X og Y er uafhæængige 
-
-- Bevis for dette behøves i ik at kende 
-
-## Variance 
-
-$$Var(X) = E[X-E(X)]^2 = E(XX) - E(X)E(X)$$
-
-- Vi kan se hvis $E(X)=0$ er $Var(X) = E(X^2)$
-
-- Bevis ovenstående
-
-$$Var(aX+b) = a^2 Var(X)$$
-$$Var(X + Y) = Var(X) + Var(Y) + 2Cov(X,Y)$$
-
-- Bevis ovenstående
-$$Var(X + Y) = Var(X) + Var(Y)$$
-
-- Hvis X og Y er uafhængige
-
-
-
-
-## Bevis for Var(X)
-
-$$Var(X) = E[X-E(X)]^2 = E(XX) - E(X)E(X)$$
-
-
-- Løs på tavlen 
-
-
-## Bevis for Var(X+Y)
-
-
-$$Var(X+Y) = Var(X) + Var(Y) + 2Cov(X,Y)$$
-
-
-## Covariance 
-
-$$Cov(X,Y) = E[X-E(X)][Y-E(Y)]= E(XY) - E(X)E(Y)$$
-
-- Bevis ovenstående
-
-$$Cov(X,X) = Var(X)$$
-
-$$Cov(aX + b, cY + d) = acCov(X,Y)$$
-
-$$Cov(X + Y, Z) = Cov(X,Z) + Cov(Y,Z)$$
-
-
-
-## Bevis Cov(X,Y)
-
-$$Cov(X,Y) = E[X-E(X)][Y-E(Y)]= E(XY) - E(X)E(Y)$$
-
-- Løs på tavlen
-
-
-# Moving Average process opsumering: 
-
-## Mean og Varians
-
-
-$$Y_t = \mu + \varepsilon_t + \alpha \varepsilon_{t-1}$$
-
-$$\varepsilon_t \sim IID(0, \sigma^2)$$
-
-- Calculate mean of $Y_t$
-
-$$E[Y_t] = E[\mu]  E[\varepsilon_t] + E[\alpha \varepsilon_{t-1}]$$
-
-- Vi ved $E[\varepsilon_t] = E[\varepsilon_{t-1}] = 0$
-
-$$E[Y_t] = \mu$$
-
-
-## Mean og varians
-
-
-- Calculate the variance 
-
-$$Var[Y_t] = E[(Y_t - \mu)^2]$$
-
-$$E[(\varepsilon_t + \alpha \varepsilon_{t-1})^2]$$
-
-$$E[\varepsilon_t^2  + 2\alpha \varepsilon_t \varepsilon_{t-1} + \alpha^2\varepsilon_{t-1}^2]$$
-
-$$E[\varepsilon_t^2]  + 2\alpha E[\varepsilon_t \varepsilon_{t-1}] +  \alpha^2 E[\varepsilon_{t-1}^2]$$
-
-- Hvorfor ved vi $2\alpha E[\varepsilon_t \varepsilon_{t-1}] = 0$?
-
-
-$$E[\varepsilon_t^2] + \alpha^2 E[\varepsilon^2_{t-1}]$$
-
-$$(1 + \alpha^2) \sigma^2$$
