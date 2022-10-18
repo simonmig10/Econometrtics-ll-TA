@@ -450,9 +450,121 @@ So back to the geometric series if $\vert \theta \vert< 1$ we get $\frac{\mu}{1-
 
 ## AR(1) model Exonometrics (mean)
 
-Lets try calculating the mean using the example from before before 
+Lets try calculating the mean using the example from before 
 
 $$y_t= 5 +  0.5y_{t-1}+\varepsilon_t$$
 $$E[y_t]= \frac{5}{1-0.5} = 10$$
 
 Lets look at the plot again!
+
+
+## AR(1) model Exonometrics (Variance)
+
+Da $\mu$ er en konstant vil denne ikke påvirke variancen og vi kan fjerne denne fra start. 
+
+```{r}
+set.seed(213)
+n=500
+e <- rnorm(n, mean = 0, sd = 1.5)
+Y <- 2/(1-0.9)
+for (t in 2:n) {
+Y[t] <- 2+ 0.9*Y[t-1]+e[t]
+}
+ts.plot(Y, main=expression(paste("AR(1) process with ", theta, "=0.1")), xlab="")
+```
+
+```{r}
+var(Y)
+```
+
+## AR(1) model Exonometrics (Variance)
+
+```{r}
+set.seed(213)
+n=500
+e <- rnorm(n, mean = 0, sd = 1.5)
+Y <- 6/(1-0.9)
+for (t in 2:n) {
+Y[t] <- 6+ 0.9*Y[t-1]+e[t]
+}
+ts.plot(Y, main=expression(paste("AR(1) process with ", theta, "=0.1")), xlab="")
+```
+
+```{r}
+var(Y)
+```
+
+
+## AR(1) model Exonometrics (Variance)
+
+$$y_t= \mu +  \theta y_{t-1}+\varepsilon_t$$
+$$\varepsilon_t \sim IID(0,\sigma^2)$$
+Vi antager derfor $\mu = 0$
+
+$$V(y_t) = E[(y_t - E[y_t])^2]$$
+
+$$V(y_t) = E[(\theta y_{t-1} + \varepsilon_t)^2]$$
+$$V(y_t) = E[\varepsilon_t^2] + \theta^2 E[y_{t-1}^2]$$
+$$V(y_t) = \sigma^2 + \theta^2 E[y_{t-1}^2]$$
+$$V(y_t) = \sigma^2 + \theta^2 E[(\theta y_{t-2} + \varepsilon_{t-1})^2]$$
+
+- Vi kan nu indsætte $y_{t-2}$ og gøre nøjagtigt de samme steps:
+
+$$\sigma^2 ( 1+ \theta^2 + \theta^4 + \theta^6 + ... + \theta^{\infty})$$
+- Brug igen geometrisk serier
+
+$$\frac{\sigma^2} {1 - \theta^2}$$
+- IF $\lvert \theta \rvert < 1$
+
+
+
+
+## AR(1) model Exonometrics (Auto covariance)
+
+
+$$cov(Y_t , Y_{t-1}) = cov(\mu +  \theta Y_{t-1}+\varepsilon_t, Y_{t-1})$$
+
+- fra statistik ved vi at $Cov(X + Y, Z) = Cov(X,Z) + Cov(Y,Z)$
+
+$$cov(\mu,Y_{t-1}) +\theta cov(Y_{t-1},Y_{t-1}) + cov(\varepsilon_t,Y_{t-1})$$
+
+- vi ved at $cov(\mu,Y_{t-1}) = cov(\varepsilon_t,Y_{t-1}) = 0$
+
+- Og hvad er det nu $cov(Y_{t-1},Y_{t-1})$ er? 
+
+$$cov(Y_t , Y_{t-1}) = \theta \frac{\sigma^2}{1-\theta^2}$$ 
+- Og antagelsen fra variance skal nu bruges: $\lvert \theta \rvert < 1$
+
+
+
+
+## AR(1) model Exonometrics (Auto covariance)
+
+$$cov(Y_t , Y_{t-2}) = cov(\mu +  \theta Y_{t-1}+\varepsilon_t, Y_{t-2})$$
+
+$$cov(\mu,Y_{t-2}) +\theta cov(Y_{t-1},Y_{t-2}) + cov(\varepsilon_t,Y_{t-1})$$
+
+- vi ved at $cov(\mu,Y_{t-1}) = cov(\varepsilon_t,Y_{t-1}) = 0$
+
+- Og vi kender $cov(Y_{t-1},Y_{t-2})$ som vi fandt på sidste slide. 
+
+$$cov(Y_t , Y_{t-2}) = \theta^2 \frac{\sigma^2}{1-\theta^2}$$ 
+
+- Da vi bruger covariancen med antagelsen, gælder den stadig: $\lvert \theta \rvert < 1$
+
+- Derfor ACF aftager over tid når i plotter en AR-model.
+
+
+# Done
+
+## Cheatsheet
+
+
+
+
+
+
+
+
+
+
