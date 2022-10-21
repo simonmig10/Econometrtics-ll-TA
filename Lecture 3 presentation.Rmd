@@ -25,9 +25,10 @@ output:
 $$E(aX + b) = aE(X) + b$$
 $$E(X+Y)= E(X)E(Y)$$
 
+### 
 $$E(XY)= E(X)E(Y)$$
 
-- Hvis X og Y er uafhæængige 
+- Hvis X og Y er uafhængige 
 
 - Bevis for dette behøves i ik at kende 
 
@@ -45,7 +46,7 @@ $$Var(X + Y) = Var(X) + Var(Y) + 2Cov(X,Y)$$
 - Bevis ovenstående
 $$Var(X + Y) = Var(X) + Var(Y)$$
 
-- Hvis X og Y er uafhængige
+- Hvis X og Y er uafhængige og dermed $Cov(X,Y)=0$
 
 
 
@@ -79,6 +80,8 @@ $$Cov(X + Y, Z) = Cov(X,Z) + Cov(Y,Z)$$
 
 
 ## Bevis Cov(X,Y)
+
+- Forsøg at bevis nedenstående: 
 
 $$Cov(X,Y) = E[X-E(X)][Y-E(Y)]= E(XY) - E(X)E(Y)$$
 
@@ -125,11 +128,14 @@ $$(1 + \alpha^2) \sigma^2$$
 
 $$Y_t = \mu + \varepsilon_t + \alpha \varepsilon_{t-1}$$
 $$\varepsilon_t \sim IID(0, \sigma^2)$$
+
 - Calculate autocovariance between $Y_t$ and $Y_{t-1}$
 
 $$Cov[Y_t,Y_{t-1}] = E[(Y_t-\mu)*(Y_{t-1} - \mu)]$$
 $$E[(\varepsilon_t + \alpha \varepsilon_{t-1}) (\varepsilon_{t-1} + \alpha \varepsilon_{t-2})]$$
-- Vis på tavlen 
+
+- Forsøg selv at tage de sidste steps!
+
 $$\alpha E[\varepsilon_{t-1}]$$
 
 $$\alpha \sigma^2$$
@@ -138,7 +144,7 @@ $$\alpha \sigma^2$$
 
 - Calculate autocovariance between $Y_t$ and $Y_{t-2}$
 
-$$Cov[Y_t,Y_{t-1}] = E[(Y_t-\mu)*(Y_{t-2} - \mu)]$$
+$$Cov[Y_t,Y_{t-2}] = E[(Y_t-\mu)*(Y_{t-2} - \mu)]$$
 $$= E[(\varepsilon_t + \alpha \varepsilon_{t-1}) (\varepsilon_{t-2} + \alpha \varepsilon_{t-3})]$$
 
 - Samme metode som vist på tavlen før:
@@ -152,7 +158,9 @@ $$Y_t = 2 + \varepsilon_t + 0.9 \varepsilon_{t-1}$$
 $$\varepsilon_t \sim IID(0, 1.5^2)$$
 
 ```{r, echo=F, fig.width=7, fig.height=4}
-n=500 # set time period to 500 obs
+set.seed(1393)
+
+n=1000 # set time period to 500 obs
 e <- rnorm(n, mean=0, sd=1.5) # purely random process with mean 0 and sd = 1.5
 mu=2 # we set mu= 2
 y <- c()
@@ -163,20 +171,17 @@ y <- y[!is.na(y)]
 ts.plot(y, main=expression(paste("MA(1) process with ", alpha, "=0.9")), xlab="")
 ```
 
+## MA(1) Simulation 
 
-```{r}
-mean(y) 
-var(y) 
-cov(y[-length(y)],y[-1])
+```{r, eval=FALSE}
+mean(y)# 1.919655
+var(y) # 3.991872
+cov(y[-length(y)],y[-1])# 1.922769
 ```
-
-
 $$E(y_t)= \mu= 2$$
-
 $$V(y_t)= (1+\alpha^2)\sigma^2$$
 $$V(y_t)= (1+ 0.9^2)1.5^2$$
 $$V(y_t)= (1+ 0.9^2)1.5^2 = 4.0725$$
-
 $$Cov= \alpha* \sigma^2$$
 $$Cov= 0.9* 1.5^2= 2.025$$
 
