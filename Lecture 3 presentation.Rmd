@@ -476,7 +476,7 @@ plot(x,type='l', main = "X_t= 5 + 1*X_t-1 + u_t")
 
 ## AR(1) model Exonometrics (mean)
 
-We saw before that we never stay the value $\frac{b}{1-a}$ in the AR(1) model, but what if we calculate the mean?
+Som vi såå før grundet fejlledet er der ik en løsning $\frac{b}{1-a}$ men istedet kan vi udregne mean
 
 $$E[y_t] = E[\mu + \theta y_{t-1} + \varepsilon_t]$$
 $$= \mu + \theta E[y_{t-1}] + E[\varepsilon]$$
@@ -503,7 +503,7 @@ Lets look at the plot again!
 
 Da $\mu$ er en konstant vil denne ikke påvirke variancen og vi kan fjerne denne fra start. 
 
-```{r}
+```{r, echo=FALSE, fig.height= 3.5}
 set.seed(213)
 n=500
 e <- rnorm(n, mean = 0, sd = 1.5)
@@ -511,16 +511,15 @@ Y <- 2/(1-0.9)
 for (t in 2:n) {
 Y[t] <- 2+ 0.9*Y[t-1]+e[t]
 }
-ts.plot(Y, main=expression(paste("AR(1) process with ", theta, "=0.1")), xlab="")
+ts.plot(Y, main=expression(paste("AR(1) process with ", theta, "=0.9 and" , mu ,"=2")), xlab="")
 ```
-
 ```{r}
 var(Y)
 ```
 
 ## AR(1) model Exonometrics (Variance)
 
-```{r}
+```{r,  echo=FALSE, fig.height= 3.5}
 set.seed(213)
 n=500
 e <- rnorm(n, mean = 0, sd = 1.5)
@@ -528,7 +527,7 @@ Y <- 6/(1-0.9)
 for (t in 2:n) {
 Y[t] <- 6+ 0.9*Y[t-1]+e[t]
 }
-ts.plot(Y, main=expression(paste("AR(1) process with ", theta, "=0.1")), xlab="")
+ts.plot(Y, main=expression(paste("AR(1) process with ", theta, "=0.9 and" , mu ,"=6")), xlab="")
 ```
 
 ```{r}
@@ -544,21 +543,22 @@ Vi antager derfor $\mu = 0$
 
 $$V(y_t) = E[(y_t - E[y_t])^2]$$
 
+- forklar dette step
 $$V(y_t) = E[(\theta y_{t-1} + \varepsilon_t)^2]$$
 $$V(y_t) = E[\varepsilon_t^2] + \theta^2 E[y_{t-1}^2]$$
 $$V(y_t) = \sigma^2 + \theta^2 E[y_{t-1}^2]$$
 $$V(y_t) = \sigma^2 + \theta^2 E[(\theta y_{t-2} + \varepsilon_{t-1})^2]$$
 
 - Vi kan nu indsætte $y_{t-2}$ og gøre nøjagtigt de samme steps:
-
 $$\sigma^2 ( 1+ \theta^2 + \theta^4 + \theta^6 + ... + \theta^{\infty})$$
-- Brug igen geometrisk serier
 
+## AR(1) model Exonometrics (Variance)
+
+
+
+- Brug igen geometrisk serier
 $$\frac{\sigma^2} {1 - \theta^2}$$
 - IF $\lvert \theta \rvert < 1$
-
-
-
 
 ## AR(1) model Exonometrics (Auto covariance)
 
