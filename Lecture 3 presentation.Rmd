@@ -218,6 +218,7 @@ Note til senere:
 - $a= \mu$
 - $k = \theta$
 
+
 ### Endelig serie
 
 $\sum^n_{n=1} ak^n = a* \frac{1-k^n}{1-k}$,   $k \neq1$
@@ -253,7 +254,7 @@ $$S_n = \alpha * \frac{1}{1-k}$$
 
 Dermed kan vi skrive:
 
-$$ \sum_{n=1}^\infty = \frac{ \alpha}{1-k}$$
+$$ \sum_{n=1}^\infty \alpha k^n = \frac{ \alpha}{1-k}$$
 
 ## Difference equations: Math to econometrics
 
@@ -289,7 +290,7 @@ Later we take a look at how this changes things!
 
 ## Differens equations (Math)
 
-Lets look at the difference equation again:
+Lets solve the difference equation we saw before:
 
 $$x_t = ax_{t-1} + b_t$$
 We can start from a given point $x_0$ 
@@ -310,7 +311,6 @@ So we can now write the last term as:
 
 $$\sum^t_{k=1}a^{t-k}b$$ 
 Which is a geometric series! that we just covered!
-
 $$\sum^t_{k=1}a^{t-k}b= b(a^{t-1} + a^{t-2} + a^{t-3} +...+a +1) =\frac{(b-ba^t)}{(1-a)}$$
 
 ## Differens equations (Math)
@@ -356,7 +356,7 @@ $$x_t= \frac{b}{1-a}$$
 
 $$\vert a \vert > 1$$
 
-- We then see that $a^t$ goes towards $\infty$ as $t \to \infty$ in and will explode.
+- We then see that $a^t$ goes towards $\infty$ as $t \to \infty$ and will explode.
 
 
 - Lets look at the different scenarios
@@ -382,7 +382,8 @@ To give an example we use the model:
 $$y_t= 5 +  0.5y_{t-1}+\varepsilon_t$$
 With start value $y_0=0$
 
-### Simulering
+Lad is bruge løsningen for en difference ligning for når $\lvert a \rvert < 1$
+
 ```{r, echo=FALSE, fig.height= 3.3}
 suppressPackageStartupMessages(library(forecast))
 # Set up variables
@@ -395,14 +396,12 @@ w <- rnorm(n)
 for (t in 2:n) x[t] <- 5+ 0.5 * x[t-1] + w[t]
 plot(x,type='l', main = "X_t= 5 + 0.5*X_t-1 + u_t"); abline( h=10, col= "red")
 ```
-
-We see the shocks from $\varepsilon_t$ does so we never stay in $\frac{b}{1-a}$ as we did with the difference equations before
+We see the shocks from $\varepsilon_t$ does so we never stay in $\frac{b}{1-a}$, så istedet regner vi mean!
 
 ## AR(1) model Exonometrics
 
 $$y_t= 5 +  1.5y_{t-1}+\varepsilon_t$$
 
-### Simulering
 
 ```{r, echo=FALSE, fig.height= 5}
 
@@ -423,14 +422,51 @@ plot(x,type='l', main = "X_t= 5 + 1.5*X_t-1 + u_t")
 
 $$y_t= 5 +  1y_{t-1}+\varepsilon_t$$
 
-### Simulering
+```{r, echo=FALSE, fig.height= 5}
+# Set up variables
+set.seed(1234)
+n <- 1000
+x <- matrix(0,1000,1)
+w <- rnorm(n, mean = 0, sd= 1)
+
+# loop to create x
+for (t in 2:n) x[t] <- 5+ 1 * x[t-1] + w[t]
+plot(x,type='l', main = "X_t= 5 + 1*X_t-1 + u_t")
+```
+
+## AR(1) model Exonometrics
+
+Plottet vi så før ligner bare en lineær funktion! Hvilket det er!
+
+Husk løsning til vores difference eq.
+
+$$x_t = a^t x_0  + \sum^t_{k=1} a^{t-k} b_k$$
+Her brugte vi løsningen til den geometriske serie til at substituere ind for $\sum^t_{k=1} a^{t-k} b_k$ Men vi antog $\lvert a \rvert < 1$
+
+Gå tilbage til geometriske serier!
+
+## AR(1) model Exonometrics
+
+Vi kan derfor nu indsætte $\sum^t_{k=1} a^{t-k} b_k = ta$
+
+$$x_t = a^t x_0  + ta$$
+Vi ved $a=1$ dermed starter vi i $x_0$ og vokser linært som $t \rightarrow \infty$
+
+## AR(1) model Exonometrics
+
+Tilbage til AR(1) processen! Hvad er det vi kalder det når $\lvert a \rvert = 1$ aka $\lvert \theta \lvert = 1$ 
+
+En Random walk med drift!
+
+Lad os lave det lidt mere tydeligt ved at øge standard deviation i fejlledet!
+
 
 ```{r, echo=FALSE, fig.height= 5}
 # Set up variables
 set.seed(1234)
 n <- 1000
 x <- matrix(0,1000,1)
-w <- rnorm(n)
+w <- rnorm(n, mean = 0, sd= 50)
 
 # loop to create x
 for (t in 2:n) x[t] <- 5+ 1 * x[t-1] + w[t]
