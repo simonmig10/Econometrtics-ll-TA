@@ -1,0 +1,115 @@
+---
+title: "lecture 6"
+output: html_document
+date: "2022-10-22"
+---
+
+# Evaluating forecasts
+
+```{r}
+set.seed(124)
+
+yt <- ts(arima.sim(n = 250, model = list(ar = c(0.5, -0.35), ma = 0.6)))
+yt <- ts(yt, start = c(1950, 1), frequency = 4)
+library(forecast)
+mymodel <- auto.arima(yt)
+arimaorder(mymodel) # I use automatic selection method in R
+```
+
+```{r}
+length(yt)
+
+```
+
+```{r}
+h <- 1
+yt1 <- window(yt, end = 1999.75)
+yt2 <- window(yt, start = 2000)
+n <- length(yt2) - h + 1
+```
+
+
+```{r}
+fcast <- matrix(0, nrow = n, ncol = h)
+for (i in 1:n) {
+freq = 4
+x <- window(yt, end = 1999.75 + (i - 1)/freq)
+refit <- Arima(x, order = c(2, 0, 1))
+fcast[i, ] <- forecast(refit, h = h)$mean
+}
+fcast = ts(fcast, start = 2000, freq = 4)
+```
+
+
+```{r}
+fcast1 <- matrix(0, nrow = n, ncol = h)
+for (i in 1:n) {
+freq = 4
+a <- window(yt, end = 1999.75 + (i - 1)/freq)
+refit <- Arima(a, order = c(1, 0, 1))
+fcast1[i, ] <- forecast(refit, h = h)$mean
+}
+fcast1 = ts(fcast1, start = 2000, freq = 4)
+```
+
+
+```{r}
+plot(yt2, lwd=2, lty=3)
+lines(fcast, col="red")
+lines(fcast1, col="blue")
+legend("topleft", c("Actual data", "ARIMA(2,0,1)", "ARIMA(1,0,1)"), lty=c(2,1,1), col=c("black", "red", "blue"))
+```
+
+
+```{r}
+arima201 = lm(yt2 ~ fcast)
+
+library(car)
+myh0 <- c("(Intercept)=0", "fcast=1")
+linearHypothesis(arima201, myh0)
+```
+
+```{r}
+arima101 = lm(yt2 ~ fcast1)
+
+myh0 <- c("(Intercept)=0", "fcast1=1")
+linearHypothesis(arima101, myh0)
+
+```
+
+We see both models have no forecast bias. 
+
+
+## MSPE
+
+```{r}
+yt <- ts(yt, start = c(1950, 1), frequency = 4)
+yt1 <- window(yt, end = c(2009, 4))
+yt2 <- window(yt, start = c(2010, 1))
+
+```
+
+
+```{r}
+arima201 <- Arima(yt1, order = c(2, 0, 1))
+fcast201 <- forecast(arima201, h = 10)
+a <- fcast201$mean # the forecasted values are stored in heading 'mean'
+```
+
+
+```{r}
+arima101 <- Arima(yt1, order = c(1, 0, 1))
+fcast101 <- forecast(arima101, h = 10)
+b <- fcast101$mean
+
+```
+
+
+```{r}
+h = 10
+mpse_a <- (sum(a - yt2)^2)/h
+mpse_b <- (sum(b - yt2)^2)/h
+mpse_a
+mpse_b
+```
+
