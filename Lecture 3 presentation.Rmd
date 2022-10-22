@@ -13,16 +13,24 @@ output:
     
 ---
 
+# Kort intro:
+
+- Alle skulle gerne kunne udregne varians, gennemsnit og autocovarians for AR(1) og MA(1) modeller. 
 
 
+- Alle skulle gerne kunne forklarer hvilke regler der bliver brugt til at udregne ovenstående. 
 
+
+- Hvis tid til overs kan i lave eksamensopgaver. 
 
 # Statistik opsumering
 
 
 ## Expected value
-
+###
 $$E(aX + b) = aE(X) + b$$
+
+###
 $$E(X+Y)= E(X)E(Y)$$
 
 ### 
@@ -33,14 +41,17 @@ $$E(XY)= E(X)E(Y)$$
 - Bevis for dette behøves i ik at kende 
 
 ## Variance 
-
+###
 $$Var(X) = E[X-E(X)]^2 = E(XX) - E(X)E(X)$$
 
 - Vi kan se hvis $E(X)=0$ er $Var(X) = E(X^2)$
 
 - Bevis ovenstående
 
+###
 $$Var(aX+b) = a^2 Var(X)$$
+
+###
 $$Var(X + Y) = Var(X) + Var(Y) + 2Cov(X,Y)$$
 
 - Bevis ovenstående
@@ -66,22 +77,25 @@ $$Var(X+Y) = Var(X) + Var(Y) + 2Cov(X,Y)$$
 
 
 ## Covariance 
-
+###
 $$Cov(X,Y) = E[X-E(X)][Y-E(Y)]= E(XY) - E(X)E(Y)$$
 
 - Bevis ovenstående
 
+###
 $$Cov(X,X) = Var(X)$$
 
+###
 $$Cov(aX + b, cY + d) = acCov(X,Y)$$
 
+###
 $$Cov(X + Y, Z) = Cov(X,Z) + Cov(Y,Z)$$
 
 
 
 ## Bevis Cov(X,Y)
 
-- Forsøg at bevis nedenstående: 
+- Forsøg selv at bevis nedenstående (5-10 minutter): 
 
 $$Cov(X,Y) = E[X-E(X)][Y-E(Y)]= E(XY) - E(X)E(Y)$$
 
@@ -274,7 +288,7 @@ $$y_t= \mu + \theta y_{t-1} + \varepsilon_t$$
 
 Hvad er forskellen?
 
-Først lad os se hvad dde har tilfældes:
+Først lad os se hvad de har tilfældes:
 
 - Begge har en konstant $\mu$ og $b$
 
@@ -324,7 +338,7 @@ Derfor kan vi nu skrive:
 
 $$x_t= a^t (x_0 - \frac{b}{1-a}) + \frac{b}{1-a}$$
 
-Vi kan se hvis $x_0 = \frac{b}{1-a}$ får vi $x_t= \frac{b}{1-a}$ hvilket er illustreret under:
+Vi kan se hvis $x_0 = \frac{b}{1-a}$ får vi løsningen $x_t= \frac{b}{1-a}$ hvilket er illustreret under:
 
 ```{r, echo=FALSE}
 knitr::include_graphics(rep("diff..png", 1), dpi = 300)
@@ -333,7 +347,7 @@ knitr::include_graphics(rep("diff..png", 1), dpi = 300)
 
 ## Differens equations (Math)
 
-Hvis $x_s$ på noget tidspunkt rammer $\frac{b}{1-a}$ vil vi aldrig komme væk fra dette punkt:
+Ud fra differens ligningen $x_t = ax_{t-1} + b$ kan vi også se at hvis $x_s$ på noget tidspunkt rammer $\frac{b}{1-a}$ vil vi aldrig komme væk fra dette punkt:
 
 $$x_{s+1} = a\frac{b}{1-a} +b = \frac{b}{1-a}$$
 
@@ -343,6 +357,8 @@ knitr::include_graphics(rep("diff2.png", 1), dpi = 300)
 
 
 ## Difference equations (stability)
+
+Vi kan kigge på stabiliteten, nøjagtigt ligsom AR(1) modellen i økonometri: 
 
 ### Case 1
 
@@ -365,6 +381,11 @@ $$\vert a \vert > 1$$
 
 - Lad os kigge på de forskellige scenarier 
 
+### Case 3
+
+$$\vert a \vert = 1$$
+
+- Kommer vi til senere
 
 ## Difference equations (stability)
 
