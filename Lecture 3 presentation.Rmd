@@ -15,6 +15,8 @@ output:
 
 # Kort intro:
 
+- Slides ligger nederst på moodle
+
 - Alle skulle gerne kunne udregne varians, gennemsnit og autocovarians for AR(1) og MA(1) modeller. 
 
 
@@ -88,6 +90,8 @@ $$Cov(X,X) = Var(X)$$
 ###
 $$Cov(aX + b, cY + d) = acCov(X,Y)$$
 
+- Konstanter ændrer Covariansen men ikke correlationen!
+
 ###
 $$Cov(X + Y, Z) = Cov(X,Z) + Cov(Y,Z)$$
 
@@ -150,7 +154,7 @@ $$E[(\varepsilon_t + \alpha \varepsilon_{t-1}) (\varepsilon_{t-1} + \alpha \vare
 
 - Forsøg selv at tage de sidste steps!
 
-$$\alpha E[\varepsilon_{t-1}]$$
+$$\alpha E[\varepsilon_{t-1}^2]$$
 
 $$\alpha \sigma^2$$
 
@@ -218,15 +222,15 @@ $$\varepsilon_t \sim IID(0, \sigma^2)$$
 
 ### Eksempel 1:
 
-$$\sum^n_{n=1}a x^n=x + x^2 + x^3 + x^4 +...+x^{n-1}$$
+$$\sum^n_{n=1}a k^n=k + k^2 + k^3 + k^4 +...+k^{n-1}$$
 
 - Hvor $a=1$
 
 ### Eksempel 2:
 
-$$\sum^n_{n=0} a x^{-1/2n} = x + \sqrt{x} + 1 + \frac{1}{\sqrt{x}} + \frac{1}{x} ... $$
+$$\sum^n_{n=0} a k^{-1/2n} = k + \sqrt{k} + 1 + \frac{1}{\sqrt{k}} + \frac{1}{k} ... $$
 
-- Hvor $a= x$
+- Hvor $a= k$
 
 ## Typer af geometriske serier
 
@@ -242,10 +246,10 @@ $\sum^n_{n=1} ak^n = a* \frac{1-k^n}{1-k}$,   $k \neq1$
 
 ### Uendelig serie
 
-$\sum^n_{n=1} ak^n = \frac{a}{1-k}$,   $\lvert k \rvert  <1$
+$\sum^{\infty}_{n=1} ak^n = \frac{a}{1-k}$,   $\lvert k \rvert  <1$
 
 
-$\sum^n_{n=1} ak^n = na$,   $\lvert k \rvert  =1$
+$\sum^{\infty}_{n=1} ak^n = na$,   $\lvert k \rvert  =1$
 
 
 
@@ -274,6 +278,12 @@ $$S_n = \alpha * \frac{1}{1-k}$$
 Dermed kan vi skrive:
 
 $$ \sum_{n=1}^\infty \alpha k^n = \frac{ \alpha}{1-k}$$
+
+Hvis $\vert k \vert =  1$
+
+Kan vi se fra tidligere slide at summen vokser med $a$ hver periode: 
+
+$$\sum_{n=1}^\infty \alpha k^n =\alpha * n$$
 
 ## Difference equations: Math to econometrics
 
@@ -329,7 +339,7 @@ Vi antager nu $b_k = b$ Så nu har vi en konstant ligsom i AR(1) modellen (fixed
 Vi kan nu skrive det sidste led som:
 
 $$\sum^t_{k=1}a^{t-k}b$$ 
-Hvilket er en geometrtisk serie! Som vi lige har kigget på!
+Hvilket er en endelig geometrtisk serie! Som vi lige har kigget på!
 $$\sum^t_{k=1}a^{t-k}b= b(a^{t-1} + a^{t-2} + a^{t-3} +...+a +1) =\frac{(b-ba^t)}{(1-a)}$$
 
 ## Differens equations (Math)
@@ -379,13 +389,13 @@ $$\vert a \vert > 1$$
 - Vi kan nu se at $a^t$ Går imod $\infty$ når $t \to \infty$ og eksplodere.
 
 
-- Lad os kigge på de forskellige scenarier 
-
 ### Case 3
 
 $$\vert a \vert = 1$$
 
 - Kommer vi til senere
+
+- Lad os kigge på de forskellige scenarier
 
 ## Difference equations (stability)
 
@@ -407,7 +417,7 @@ Som eksempel bruger vi:
 $$y_t= 5 +  0.5y_{t-1}+\varepsilon_t$$
 Med start værdien $y_0=0$
 
-Lad is bruge løsningen for en difference ligning for når $\lvert a \rvert < 1$
+Lad os bruge løsningen for en difference ligning for når $\lvert a \rvert < 1$
 
 ```{r, echo=FALSE, fig.height= 3.3}
 suppressPackageStartupMessages(library(forecast))
