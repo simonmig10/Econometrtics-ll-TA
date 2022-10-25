@@ -33,7 +33,7 @@ output:
 $$E(aX + b) = aE(X) + b$$
 
 ###
-$$E(X+Y)= E(X)E(Y)$$
+$$E(X+Y)= E(X)+E(Y)$$
 
 ### 
 $$E(XY)= E(X)E(Y)$$
@@ -657,7 +657,11 @@ $$cov(Y_t , Y_{t-2}) = \theta^2 \frac{\sigma^2}{1-\theta^2}$$
 | Stationary? |           YES!                    | YES!                     | NO!                     | NO!                     | NO!                     |
 +-------------+-----------------------------------+--------------------------+-------------------------+-------------------------+-------------------------+
 
+- RW1 = Random walk uden drift og trend
 
+- RW2 = Random walk med drift
+
+- RW3 = Random walk med drift og trend
 
 
 
