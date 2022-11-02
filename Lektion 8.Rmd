@@ -1,0 +1,65 @@
+---
+title: "Lecture 8"
+author: "Simon Fløj Thomsen"
+date: "2/11/2022"
+output: html_document
+---
+
+# Spurious regression 
+
+```{r}
+set.seed(2113)
+n = 100
+e = replicate(4, {
+rnorm(100, 0, 1)
+})
+e1 = e[, 1]
+e2 = e[, 2]
+e3 = e[, 3]
+e4 = e[, 4]
+Y = c(1)
+X1 = c(1)
+X2 = c(1)
+X3 = c(1)
+t = 1:n
+for (t in 2:n) {
+Y[t] <- Y[t - 1] + e1[t]
+X1[t] <- X1[t - 1] + e2[t]
+X2[t] <- X2[t - 1] + e3[t]
+X3[t] <- X3[t - 1] + e4[t]
+}
+```
+
+
+```{r}
+par(mfrow = c(2, 2))
+plot(Y, t = "l")
+plot(X1, t = "l")
+plot(X2, t = "l")
+plot(X3, t = "l")
+
+```
+```{r}
+library(dynlm)
+summary(dynlm(Y ~ X1 + X2 + X3))
+
+```
+
+```{r}
+summary(dynlm(Y ~ L(Y, 1) + X1 + X2 + X3))
+```
+
+```{r}
+set.seed(2113)
+n=80
+e= replicate(4, {rnorm(100,0,1)} )
+e1=e[,1]; e2=e[,2]
+mu=0.5
+Y=c(1); X=c(1);
+t=1:n
+for (t in 2:n) {
+Y[t] <- mu + Y[t-1] + e1[t]
+X[t] <- mu + X[t-1] + e2[t]
+}
+```
+
