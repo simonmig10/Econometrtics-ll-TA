@@ -155,3 +155,38 @@ exchange rate and exports, etc. are a few examples in macro showing
 long-run relationship
 Test the two variables for a unit root.
 Test for cointegration.
+
+
+# Error correction model 
+
+```{r}
+Y = ts(Y)
+X = ts(X)
+summary(dynlm(diff(Y) ~ L(diff(Y), 1) + L(diff(X), 1) + diff(X) + L(Y,
+1) + L(X, 1)))
+```
+
+```{r}
+dynlm(diff(Y)~diff(X) + L(Y,1) + L(X,1))
+```
+
+
+
+```{r}
+Y = ts(Y)
+X = ts(X)
+model = dynlm(Y ~ X)
+model 
+
+error = residuals(model)
+```
+
+
+```{r}
+ecm= dynlm(diff(Y)~diff(X) + L(error,1))
+summary(ecm)
+
+```
+
+## Excercise 
+
