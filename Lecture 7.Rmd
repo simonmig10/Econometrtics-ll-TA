@@ -1,0 +1,262 @@
+---
+title: "Lecture 7"
+author: "Simon"
+date: "30/10/2022"
+output: html_document
+---
+
+# ARDL: Dynamic multipliers
+
+
+```{r}
+set.seed(154)
+e = rnorm(500,0,1) # e is white noise
+x=rnorm(500, 2, 3)
+y <- 0
+mu <- 2
+for (t in 2:500) {
+y[t] <- mu + 0.6*y[t-1] + 0.7*x[t] + 0.2*x[t-1] + e[t]
+}
+y=ts(y)
+x=ts(x)
+```
+
+```{r}
+library(dynlm)
+dynlm(y~L(y,1) + x + L(x,1))
+```
+
+```{r}
+par(mar=c(2,2,1,2))
+alpha <- 0.6
+beta_0 = 0.7
+beta_1 = 0.2
+t=0:20
+z1<- ifelse(t<1,0,1) # i want the last part of the eq = 0 if t=0 (otherwise exponent will be negative)
+sr <- beta_0*alpha^t + z1*beta_1*alpha^(t-1)
+lr <-cumsum(sr)
+```
+
+```{r}
+par(mar=c(2,2,1,2))
+plot(sr, t="l")
+```
+
+```{r}
+par(mar=c(2,2,1,2))
+lr=cumsum(sr)
+plot(lr, t="l")
+
+```
+
+```{r}
+(beta_0 + beta_1)/(1-alpha)
+```
+
+## Exercise 
+
+Assume ARDL(1,2)
+
+$$y= \mu + a_1 y_{t-1} + \beta_0 x + \beta_1 x_{t-1} + \beta_2 x_{t-2} + \varepsilon_t$$
+
+Derive the dynamic multipliers for this 
+
+
+
+
+
+## Example
+
+
+$$y= \mu + 0.6 y_{t-1} + 0.7 x + 0.3 x_{t-1} + 0.2 x_{t-2} + \varepsilon_t$$
+```{r}
+set.seed(154)
+e = rnorm(500,0,1) # e is white noise
+x=rnorm(500, 2, 3)
+y <- c(0,0)
+mu <- 2
+for (t in 3:500) {
+y[t] <- mu + 0.6*y[t-1] + 0.7*x[t] + 0.3*x[t-1] + 0.2*x[t-2] + e[t]
+}
+y=ts(y)
+x=ts(x)
+```
+
+```{r}
+library(dynlm)
+dynlm(y~L(y,1) + x + L(x,1) +L(x,2))
+```
+
+```{r}
+rm(list=ls(all=T))
+par(mar=c(2,2,1,2))
+alpha <- 0.6
+beta_0 =0.7
+beta_1 = 0.3
+beta_2 = 0.2
+k=0:10
+z1<- ifelse(k<1,0,1) # i want middle part of the eq = 0 if k=0 (otherwise exponent will be negative)
+z2<- ifelse(k<2,0,1) # i want last part of the eq = 0 if k<2 (otherwise exponent will be negative)
+sr <- beta_0*alpha^k + z1*beta_1*alpha^(k-1) + z2*beta_2*alpha^(k-2)
+
+```
+
+```{r}
+plot(sr, t="l")
+```
+
+```{r}
+par(mar=c(2,2,1,2))
+lr=cumsum(sr)
+plot(lr, t="l")
+```
+
+```{r}
+(beta_0 + beta_1 + beta_2)/(1-alpha)
+```
+
+## Example 2
+
+```{r}
+library(Quandl) # I have the dataset in the text file in case it does not work during the lect.
+sav <- Quandl("ODA/DNK_NGSD_NGDP", type="ts")
+inv=Quandl("ODA/DNK_NID_NGDP", type = "ts")
+
+```
+
+```{r}
+library(dynlm)
+model1 = dynlm(inv~L(inv,1) + sav + L(sav,1) + L(sav,2))
+model1
+```
+
+### Error correction model 
+
+
+```{r}
+set.seed(154)
+e = rnorm(500,0,1) # e is white noise
+x=rnorm(500, 2, 3)
+y <- 0
+mu <- 2
+for (t in 2:500) {
+y[t] <- mu + 0.6*y[t-1] + 0.7*x[t] + 0.2*x[t-1] + e[t]
+}
+y=ts(y)
+x=ts(x)
+```
+
+```{r}
+library(dynlm)
+dynlm(diff(y)~diff(x) + L(y,1) + L(x,1))
+
+```
+
+# Diagnostics
+
+## parameter consistancy
+
+```{r}
+model=dynlm(y~L(y,1) + x + L(x,1) + L(x,2))
+model
+
+```
+
+```{r}
+lagged <- function(x, k) {
+if (k>0) {
+return (c(rep(NA, k), x)[1 : length(x)] );
+}
+else {
+return (c(x[(-k+1) : length(x)], rep(NA, -k)));
+}
+}
+```
+
+
+```{r}
+lagy1=ts(lagged(y,1)); lagx1=ts(lagged(x,1)); lagx2=ts(lagged(x,2))
+mydata=cbind(y,x, lagy1, lagx1, lagx2)
+mydata=na.omit(mydata)
+```
+
+```{r}
+model <- lm(y~lagy1 + x + lagx1 + lagx2); model
+
+```
+```{r}
+library(strucchange)
+struc <- y~lagy1 + x + lagx1 + lagx2 # Note I do not write lm here anymore
+stability <- efp(struc, type="OLS-CUSUM", data=mydata)
+plot(stability)
+
+```
+```{r}
+library(strucchange)
+stability <- efp(struc, type="Rec-CUSUM", data=mydata)
+plot(stability)
+
+```
+
+
+We test specifically for a period 
+
+```{r}
+fs=Fstats(struc, from = 250, to = 400, data = mydata)
+plot(fs)
+```
+
+Check residuals 
+
+```{r}
+res=residuals(model)
+plot(res, t="l")
+abline(h=0, col="red", lwd=4)
+```
+
+
+## Parameter consistancy of savings and investment
+
+```{r}
+library(dynlm)
+dynlm(diff(inv)~ diff(sav) + L(diff(sav), 1) + L(inv,1) + L(sav,1))
+```
+
+```{r}
+lag_i1=lagged(inv, 1) # take the first lag of inv
+lag_s1=lagged(sav, 1) # take the second lag of sav
+sd = sav - lagged(sav, 1) # take the first difference
+id= inv - lagged(inv, 1) # take the first difference of inv
+lag_sd1=lagged(sd,1) # take the first lag of sd
+```
+
+
+```{r}
+data= cbind(sd,id, lag_sd1, lag_i1, lag_s1)
+data=ts(data, start=1980, freq=1); data=na.omit(data)
+dk_model <- lm(id~sd + lag_sd1 + lag_i1 + lag_s1, data=data)
+dk_model
+```
+
+```{r}
+library(strucchange)
+struc <- id~sd + lag_sd1 + lag_i1 + lag_s1 # Note I do not write lm here anymore
+stability <- efp(struc, type="OLS-CUSUM", data=data)
+plot(stability)
+
+```
+
+```{r}
+library(strucchange)
+struc <- id~sd + lag_sd1 + lag_i1 + lag_s1 # Note I do not write lm here anymore
+stability <- efp(struc, type="Rec-CUSUM", data=data)
+plot(stability)
+```
+
+```{r}
+res=residuals(dk_model)
+plot(res, t="l")
+abline(h=0, col="red", lwd=4)
+  
+```
+

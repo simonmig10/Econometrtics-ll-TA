@@ -1,0 +1,192 @@
+---
+title: "Lecture 8"
+author: "Simon"
+date: "3/11/2022"
+output: html_document
+---
+
+# Spurious regressions 
+
+```{r}
+set.seed(2113)
+n = 100
+e = replicate(4, {
+rnorm(100, 0, 1)
+})
+e1 = e[, 1]
+e2 = e[, 2]
+e3 = e[, 3]
+e4 = e[, 4]
+Y = c(1)
+X1 = c(1)
+X2 = c(1)
+X3 = c(1)
+t = 1:n
+for (t in 2:n) {
+Y[t] <- Y[t - 1] + e1[t]
+X1[t] <- X1[t - 1] + e2[t]
+X2[t] <- X2[t - 1] + e3[t]
+X3[t] <- X3[t - 1] + e4[t]
+}
+```
+
+```{r}
+par(mfrow = c(2, 2))
+plot(Y, t = "l")
+plot(X1, t = "l")
+plot(X2, t = "l")
+plot(X3, t = "l")
+
+```
+
+```{r}
+library(dynlm)
+summary(dynlm(Y ~ X1 + X2 + X3))
+```
+
+```{r}
+summary(dynlm(Y ~ L(Y, 1) + X1 + X2 + X3))
+```
+
+```{r}
+set.seed(2113)
+n=80
+e= replicate(4, {rnorm(100,0,1)} )
+e1=e[,1]; e2=e[,2]
+mu=0.5
+Y=c(1); X=c(1);
+t=1:n
+for (t in 2:n) {
+Y[t] <- mu + Y[t-1] + e1[t]
+X[t] <- mu + X[t-1] + e2[t]
+}
+
+
+```
+
+```{r}
+summary(dynlm(Y ~ X))
+```
+
+```{r}
+summary(dynlm(Y ~ X + L(Y,1)))
+```
+
+
+# Cointegration
+
+
+
+```{r}
+n = 100
+set.seed(2113)
+e = replicate(4, {
+rnorm(100, 0, 1)
+})
+e1 = e[, 1]
+e2 = e[, 2]
+Y = c(1)
+X = c(1)
+t = 1:n
+for (t in 2:n) {
+X[t] <- X[t - 1] + e1[t]
+Y[t] <- 0.8 * X[t] + e2[t]
+}
+```
+
+
+
+```{r}
+PP.test(Y)
+PP.test(X)
+
+```
+
+```{r}
+PP.test(diff(Y))
+PP.test(diff(X))
+```
+
+**Johansen cointegration**
+
+```{r}
+model <- lm(Y ~ X)
+error = residuals(model)
+
+```
+
+```{r}
+arpdiag <- function(series, lags) {
+x <- mat.or.vec(lags, 1)
+y <- mat.or.vec(lags, 1)
+y <- y + 0.05
+for (i in 1:lags) {
+x[i] <- Box.test(series, lag = i, type = "Ljung-Box")$p.value
+}
+plot(x, xlab = "Lags", ylab = "p-value H0: no
+Autocorrelation", type = "p",
+main = "Ljung-Box Test for
+Autocorrelation", ylim = c(0, 1))
+axis(1, 1:lags)
+abline(0.05, 0, lty = 2, col = "blue")
+}
+```
+
+
+```{r}
+library(urca)
+model1<-ur.df(error,lags=0,type='none')
+res<- model1@testreg$residuals
+arpdiag(res, 12)
+
+```
+
+```{r}
+model1<-ur.df(error,lags=0,type='none')
+model1@testreg
+
+```
+
+## Exercise 
+
+Get data on two variables that you believe should have a long-run relationship
+I Saving and Investment, Disposable income and consumption, real
+exchange rate and exports, etc. are a few examples in macro showing
+long-run relationship
+Test the two variables for a unit root.
+Test for cointegration.
+
+
+# Error correction model 
+
+```{r}
+Y = ts(Y)
+X = ts(X)
+summary(dynlm(diff(Y) ~ L(diff(Y), 1) + L(diff(X), 1) + diff(X) + L(Y,
+1) + L(X, 1)))
+```
+
+```{r}
+dynlm(diff(Y)~diff(X) + L(Y,1) + L(X,1))
+```
+
+
+
+```{r}
+Y = ts(Y)
+X = ts(X)
+model = dynlm(Y ~ X)
+model 
+
+error = residuals(model)
+```
+
+
+```{r}
+ecm= dynlm(diff(Y)~diff(X) + L(error,1))
+summary(ecm)
+
+```
+
+## Excercise 
+
