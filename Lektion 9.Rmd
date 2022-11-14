@@ -1,0 +1,175 @@
+---
+title: "Lecture 9"
+author: "Simon"
+date: "14/11/2022"
+output: html_document
+---
+
+# Cointegration: ARDL bounds test
+
+```{r}
+library(readr)
+dk_data <- read_csv("dk_data.csv")
+stock <- ts(dk_data$stock_prices, start=c(1987,1), frequency = 12)
+r <- ts(dk_data$long_term_r, start=c(1987,1), frequency = 12)
+stock <- log(stock) # I will log stocks but not interest rates as r is already in percentages
+```
+
+
+```{r}
+par(mar = c(5,5,2,5)) # Leaves some space for the second axis
+plot(stock, type="l", xlab=NA, ylab=NA, lwd=3)
+par(new=T)
+plot(r ,type="l",axes=F, xlab=NA, ylab=NA, col="blue", lwd=3) # Removes axis and labels so they don't oveaxis(side = 4) # Adds secondary axis
+legend(2000,12, legend=c("stock prices", "bond yield (right axis)"),
+col=c("black", "blue"), lwd=3)
+```
+
+**Step 1**
+
+Test for unit root
+
+```{r}
+library(urca)
+test1 <- ur.df(stock,lags=3,type='trend')
+
+```
+
+```{r}
+arpdiag<-function(series,lags){
+x<-mat.or.vec(lags,1)
+y<-mat.or.vec(lags,1)
+y<-y+0.05
+for(i in 1:lags){x[i]<-Box.test(series,lag=i,type="Ljung-Box")$p.value}
+plot(x,xlab="Lags",ylab="p-value H0: no
+Autocorrelation",type="p",main="Ljung-Box Test for
+Autocorrelation",ylim=c(0,1))
+axis(1,1:lags)
+abline(0.05,0,lty=2,col = "blue")}
+```
+
+```{r}
+res1<- test1@testreg$residuals
+arpdiag(res1, 12)
+
+```
+
+```{r}
+test1@teststat
+test1@cval
+```
+
+Evidence of unit root so we take diff
+
+```{r}
+test2 <- ur.df(diff(stock),lags=1,type='drift')
+```
+```{r}
+res2<- test2@testreg$residuals
+arpdiag(res2, 12)
+```
+
+```{r}
+test2@teststat
+test2@cval
+
+```
+
+WE get that r is I(0) and stocks are I(1)
+
+**Step 2**
+
+Calclate error correction model
+
+```{r}
+library(dynlm)
+stock_d=diff(stock)
+r_d = diff(r)
+ecm1 <- dynlm(stock_d~L(stock_d, 1:4) + L(r_d, 0:4) + L(stock,1) + L(r,1) + trend(stock_d))
+# summary(ecm1)
+
+```
+
+
+```{r}
+ecm2 <- dynlm(stock_d~L(stock_d, 1:3) + L(r_d, 0:3) + L(stock,1) + L(r,1))
+summary(ecm2)
+
+```
+
+```{r}
+ecm3 <- dynlm(stock_d~L(stock_d, 1:3) + L(r_d, 0:2) + L(stock,1) + L(r,1))
+summary(ecm3)
+
+```
+
+
+```{r}
+ecm4 <- dynlm(stock_d~L(stock_d, c(1,3)) + L(r_d, 0:1) + L(stock,1) + L(r,1))
+summary(ecm4)
+
+```
+
+**Step 3**
+
+Perform an F-test
+
+```{r}
+ecm_restrict <- dynlm(stock_d~L(stock_d, c(1,3)) + L(r_d, 0:1))
+```
+
+```{r}
+anova(ecm4, ecm_restrict)
+```
+
+**Step 4**
+
+Calculate lr estimates
+
+```{r}
+phi1= ecm4$coefficients[7]; phi1
+theta1= ecm4$coefficients[6]; theta1
+-phi1/theta1
+```
+
+```{r}
+library(nlWaldTest)
+nlWaldtest(ecm4,c("b[7]/b[6]=0"))
+```
+
+
+We can use the error term from lr regression to calculate the speed of adjustment
+
+```{r}
+lrm <- lm(stock~r)
+error <- residuals(lrm)
+error <- ts(error, start = c(1987,1) , frequency = 12)
+```
+
+```{r}
+ecm4 <- dynlm(stock_d~L(stock_d, c(1,3)) + L(r_d, 0:1) + L(stock,1) + L(r,1))
+ecm4a <- dynlm(stock_d~L(stock_d, c(1,3)) + L(r_d, 0:1) + L(error,1) )
+summary(ecm4a)
+summary(ecm4)
+```
+
+
+
+**Diagnostics**
+
+```{r}
+ecm4 <- dynlm(stock_d~L(stock_d, c(1,3)) + L(r_d, 0:1) + L(stock,1) + L(r,1))
+res1 <- residuals(ecm4)
+Box.test(res1, lag = 12)
+
+```
+
+```{r}
+Box.test(res1^2, lag = 12)
+```
+
+```{r}
+par(mfrow=c(2,2))
+plot(ecm4)
+```
+
