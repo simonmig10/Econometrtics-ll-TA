@@ -1,0 +1,59 @@
+---
+title: "Lecture 10"
+author: "Simon"
+date: "16/11/2022"
+output: html_document
+---
+
+# Introduction to VAR
+
+# Structural VAR
+
+# VAR in practise
+
+```{r}
+ library(vars)
+data(Canada)
+e <- Canada[,"e"] # employment measure
+prod <- Canada[,"prod"] # productivity measure
+```
+
+```{r}
+plot(e, ylab = "", col = "red"); par(new = T)
+plot(prod, ylab = "", yaxt = "n", col = "blue"); axis(side = 4)
+legend("topleft", c("e (left)", "prod (right)"), col = c("red", "blue"))
+```
+
+
+```{r}
+var1 <- VAR(cbind(diff(e),diff(prod)), lag.max = 1)
+coef(var1)
+```
+
+```{r}
+summary(var1)
+```
+
+```{r}
+summary(var1)$covres
+```
+
+## Diagnostics
+
+```{r}
+serial.test(var1, lags.pt = 12)
+```
+
+```{r}
+test <- normality.test(var1)
+test$jb.mul$JB
+```
+
+```{r}
+par(mfcol = c(2,2))
+shock1 <- irf(var1, impulse ="diff.e.",ortho=FALSE, response = c("diff.e.", "diff.prod."))
+shock2 <- irf(var1, impulse ="diff.prod.",ortho=FALSE,response = c("diff.e.", "diff.prod."))
+plot(shock1)
+plot(shock2) 
+```
+
