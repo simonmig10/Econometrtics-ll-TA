@@ -58,4 +58,25 @@ plot(shock2)
 ```
 
 
+We include contemporanious effects
+
+```{r}
+bmat <- diag(2)
+bmat[2,1]<-NA
+bmat
+
+```
+
+```{r}
+svar1 <- SVAR(x = var1, Amat = bmat)
+```
+
+```{r}
+shock1_s <- irf(svar1, impulse ="diff.e.",ortho=FALSE, response = c("diff.e.", "diff.prod."))
+shock2_s <- irf(svar1, impulse ="diff.prod.",ortho=FALSE,response = c("diff.e.", "diff.prod."))
+```
+
+```{r}
+plot(irf(svar1, impulse = "diff.e.", ortho=FALSE, response=c("diff.e.", "diff.prod."), cumulative = T))
+```
 
