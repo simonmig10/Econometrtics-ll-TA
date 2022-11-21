@@ -80,14 +80,85 @@ abline(0.05, 0, lty = 2, col = "blue")
 
 ### House prices
 
+**general-to-specific metode**
+
+*Start*
+
 ```{r}
-model1<-ur.df(hp,lags=8,type='drift')
+model1_start<-ur.df(hp,lags=12,type='trend')
+summary(model1_start)
+```
+
+*End*
+```{r}
+model1<-ur.df(hp,lags=9,type='drift')
 res<- model1@testreg$residuals
 arpdiag(res, 12)
 summary(model1)
 ```
 
+
+**Omvendt, anbefaldes IKKE (af Enders i hvertfald, se side 217)**
+
+*Start*
+
+```{r}
+model1_start<-ur.df(hp,lags=6,type='drift')
+summary(model1_start)
+```
+
+*End*
+```{r}
+model1<-ur.df(hp,lags=6,type='drift')
+res<- model1@testreg$residuals
+arpdiag(res, 12)
+summary(model1)
+```
+
+**Alternative, keep significant lags:**
+
+*Start*
+
+```{r}
+library(dynlm)
+model_start_hp <- dynlm(diff(hp) ~ 1+ L(hp, 1) + L(diff(hp), c(1:12))+ trend(diff(hp)))
+summary(model_start_hp)
+```
+
+*test*
+
+```{r}
+library(stringr)
+library(car)
+vars_hp <- str_c("L(diff(hp), c(1:12))", c(10:12, 2:3, 5, 7 ))
+linearHypothesis(model_start_hp, vars_hp, rep(0, length(vars_hp)))
+```
+
+*End*
+
+```{r}
+model_end_hp <- dynlm(diff(hp) ~ 1+ L(hp, 1) + L(diff(hp), c(1,4,6,8,9)))
+summary(model_end_hp)
+res= residuals(model_end_hp)
+arpdiag(res,12)
+
+summary(ur.df(hp,lags=6,type='drift'))
+```
+
+
+
+
+
 ### Real GDP
+
+**Start**
+```{r}
+model2<-ur.df(y,lags=12,type='trend')
+summary(model2)
+```
+
+
+**End**
 ```{r}
 model2<-ur.df(y,lags=8,type='trend')
 res<- model2@testreg$residuals
@@ -98,6 +169,15 @@ model2@teststat
 
 ### Credit
 
+**Start**
+
+```{r}
+model3<-ur.df(c,lags=12,type='trend')
+summary(model3)
+```
+
+
+**End**
 ```{r}
 model3<-ur.df(c,lags=8,type='drift')
 res<- model3@testreg$residuals
@@ -108,8 +188,16 @@ model2@teststat
 
 ### Interest rate
 
+**Start**
+
 ```{r}
-model4<-ur.df(r,lags=8,type='none')
+model4<-ur.df(r,lags=2,type='none')
+summary(model4)
+```
+
+**End**
+```{r}
+model4<-ur.df(r,lags=2,type='none')
 res<- model4@testreg$residuals
 arpdiag(res, 12)
 summary(model4)
@@ -167,9 +255,10 @@ plot(c_d)
 ```
 
 ```{r}
-model8<-ur.df(r_d,lags=8,type='trend')
+model8<-ur.df(r_d,lags=4,type='trend')
 res<- model8@testreg$residuals
 arpdiag(res, 12)
+summary(model8)
 model8@teststat
 model8@cval
 ```
