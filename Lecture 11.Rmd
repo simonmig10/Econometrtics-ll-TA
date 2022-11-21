@@ -1,0 +1,322 @@
+---
+title: "TS exercise on VARs SVARs"
+author: "HR"
+date: "11/16/2021"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE)
+```
+
+## Define a hypothesis:
+
+## Load the data:
+
+```{r}
+library(mFilter)
+library(urca)
+library(dynlm)
+library(strucchange)
+library(vars)
+library(readxl)
+library(readr)
+data <- read.csv("dataset.csv")
+```
+
+## Plot the data:
+
+```{r}
+hp1 <- ts(data$house.prices, start=c(1950,1), frequency = 4)
+y1 <- ts(data$real.gdp, start=c(1950,1), frequency = 4)
+r <- ts(data$national.bank.lending.rate , start=c(1950,1), frequency = 4)
+c1 <- ts(data$credit, start=c(1950,1), frequency = 4)
+
+hp <- log(hp1)
+y <- log(y1)
+c <- log(c1)
+
+plot(hp)
+plot(y)
+plot(r)
+plot(c)
+```
+
+## Test for seasonality
+
+```{r}
+X <- cycle(y)
+q1 <- ifelse(X == "1", 1, 0)
+q2 <- ifelse(X == "2", 1, 0)
+q3 <- ifelse(X == "3", 1, 0)
+q4 <- ifelse(X == "4", 1, 0)
+summary(y.reg <- lm(y ~ q1 + q2 + q3))
+```
+
+## Deasonalised vs seasonal data
+
+We did not find any evidence of seasonal fluctuation
+
+## Unit root testing
+
+```{r}
+arpdiag <- function(series, lags) {
+x <- mat.or.vec(lags, 1)
+y <- mat.or.vec(lags, 1)
+y <- y + 0.05
+for (i in 1:lags) {
+x[i] <- Box.test(series, lag = i, type = "Ljung-Box")$p.value
+}
+plot(x, xlab = "Lags", ylab = "p-value H0: no
+Autocorrelation", type = "p",
+main = "Ljung-Box Test for
+Autocorrelation", ylim = c(0, 1))
+axis(1, 1:lags)
+abline(0.05, 0, lty = 2, col = "blue")
+}
+```
+
+### House prices
+
+```{r}
+model1<-ur.df(hp,lags=8,type='drift')
+res<- model1@testreg$residuals
+arpdiag(res, 12)
+summary(model1)
+```
+
+### Real GDP
+```{r}
+model2<-ur.df(y,lags=8,type='trend')
+res<- model2@testreg$residuals
+arpdiag(res, 12)
+summary(model2)
+model2@teststat
+```
+
+### Credit
+
+```{r}
+model3<-ur.df(c,lags=8,type='drift')
+res<- model3@testreg$residuals
+arpdiag(res, 12)
+summary(model3)
+model2@teststat
+```
+
+### Interest rate
+
+```{r}
+model4<-ur.df(r,lags=8,type='none')
+res<- model4@testreg$residuals
+arpdiag(res, 12)
+summary(model4)
+model2@teststat
+```
+
+### Make the series stationary
+
+```{r}
+y_d <- diff(y)
+hp_d <- diff(hp)
+r_d <- diff(r)
+c_d <- diff(c)
+```
+
+```{r}
+model5<-ur.df(y_d,lags=8,type='trend')
+res<- model5@testreg$residuals
+arpdiag(res, 12)
+summary(model5)
+model5@teststat
+model5@cval
+```
+
+```{r}
+plot(y_d)
+```
+
+
+```{r}
+model6<-ur.df(hp_d,lags=8,type='trend')
+res<- model6@testreg$residuals
+arpdiag(res, 12)
+summary(model6)
+model6@teststat
+model6@cval
+```
+
+```{r}
+plot(hp_d)
+```
+
+
+```{r}
+model7<-ur.df(c_d,lags=4,type='trend')
+res<- model7@testreg$residuals
+arpdiag(res, 12)
+summary(model7)
+model7@teststat
+model7@cval
+```
+
+```{r}
+plot(c_d)
+```
+
+```{r}
+model8<-ur.df(r_d,lags=8,type='trend')
+res<- model8@testreg$residuals
+arpdiag(res, 12)
+model8@teststat
+model8@cval
+```
+
+```{r}
+plot(r_d)
+```
+
+All my 4 variables are I(1)
+
+```{r}
+dataset <- cbind(y_d, r_d, c_d, hp_d)
+VARselect(dataset)
+```
+
+
+## Granger causality
+
+```{r}
+library(car)
+yg <- dynlm(y_d~L(y_d, c(1:5)) + L(r_d, c(1:5)) + L(c_d, c(1:5)) + L(hp_d, c(1:5) ))
+summary(yg)
+yg1 <- dynlm(y_d~L(y_d, c(1:5)) + L(c_d, c(1:5)) + L(hp_d, c(1:5) ))
+anova(yg, yg1)
+yg2 <- dynlm(y_d~L(y_d, c(1:5)) + L(r_d, c(1:5))  + L(hp_d, c(1:5) ))
+anova(yg, yg2)
+yg3 <- dynlm(y_d~L(y_d, c(1:5)) + L(r_d, c(1:5))  + L(c_d, c(1:5) ))
+anova(yg, yg3)
+```
+
+
+## VAR model
+
+```{r}
+var <- VAR(y = dataset, p = 5, type = 'const')
+roots(var)
+serial.test(var, lags.pt=12)
+arch.test(var, lags.multi = 12, multivariate.only=T)
+normality.test(var)
+```
+
+```{r, out.width=1}
+plot(stability(var, type="OLS-CUSUM"))
+```
+
+
+## Estimate SVAR
+
+```{r}
+bmat<-diag(4) 
+diag(bmat)<-1 
+bmat[2,1]<-NA 
+bmat[3,1]<-NA 
+bmat[3,2]<-NA
+bmat[4,1]<-NA 
+bmat[4,2]<-NA 
+bmat[4,3]<-NA
+bmat
+```
+
+
+```{r}
+svar <- SVAR(x = var, Bmat = bmat)
+```
+
+## Impulse responses
+
+```{r}
+shock1 = irf(svar, n.ahead=24, impulse='y_d', ci=0.66, response=c('r_d'), cumulative=T)
+shock2 = irf(svar, n.ahead=24, impulse='y_d', ci=0.66, response=c('c_d'), cumulative=T)
+shock3 = irf(svar, n.ahead=24, impulse='y_d', ci=0.66, response=c('hp_d'), cumulative=T)
+shock4 = irf(svar, n.ahead=24, impulse='hp_d', ci=0.66, response=c('y_d'), cumulative=T)
+```
+
+
+```{r}
+par(mfrow=c(3,3))
+plot(shock1, xlab="") 
+plot(shock2, xlab="") 
+plot(shock3, xlab="")
+plot(shock4, xlab="")
+```
+
+## Is the effect of house price shocks on GDP asymmetrics (non-linear)?
+
+```{r}
+pos_diff <- function(x) {
+     xd <- x - diff(x)
+     y<- cumsum((0 + 1*(xd > 0))*xd)
+}
+
+neg_diff <- function(x) {
+  xd <- x - diff(x)
+  y<- cumsum((0 + 1*(xd < 0))*xd)
+}
+
+hp_pos <- pos_diff(hp_d)
+hp_neg <- neg_diff(hp_d)
+hp_pos <- ts(hp_pos, start=c(1950,1), frequency = 4)
+hp_neg <- ts(hp_neg, start=c(1950,1), frequency = 4)
+```
+Plot negative and positive movements separately
+```{r}
+plot(hp_pos)
+plot(hp_neg)
+hp_pos_d<- diff(hp_pos)
+hp_neg_d <- diff(hp_neg)
+plot(hp_pos_d)
+plot(hp_neg_d)
+```
+
+
+```{r}
+dataset <- cbind(y_d, r_d, c_d, hp_pos_d)
+dataset <- na.omit(dataset)
+VARselect(dataset)
+```
+
+```{r}
+var1 <- VAR(y = dataset, p = 5, type = 'const')
+roots(var1)
+svar1 <- SVAR(x = var1, Bmat = bmat)
+```
+
+## Effect of positive shocks to house prices on GDP
+
+```{r}
+shock1 = irf(svar1, n.ahead=24, impulse='hp_pos_d', ci=0.66, response=c('y_d'), cumulative=T)
+plot(shock1)
+```
+
+
+```{r}
+dataset <- cbind(y_d, r_d, c_d, hp_neg_d)
+dataset <- na.omit(dataset)
+VARselect(dataset)
+```
+
+```{r}
+var1 <- VAR(y = dataset, p = 5, type = 'const')
+roots(var1)
+svar1 <- SVAR(x = var1, Bmat = bmat)
+```
+
+## Effect of negative shocks to house prices on GDP
+
+```{r}
+shock1 = irf(svar1, n.ahead=24, impulse='hp_neg_d', ci=0.66, response=c('y_d'), cumulative=T)
+plot(shock1)
+```
