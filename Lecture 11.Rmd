@@ -38,7 +38,7 @@ hp <- log(hp1)
 y <- log(y1)
 c <- log(c1)
 
-plot(hp)
+plot(hp); plot(hp1)
 plot(y)
 plot(r)
 plot(c)
@@ -115,13 +115,13 @@ arpdiag(res, 12)
 summary(model1)
 ```
 
-**Alternative, keep significant lags:**
+**Extra, keep significant lags:**
 
 *Start*
 
 ```{r}
 library(dynlm)
-model_start_hp <- dynlm(diff(hp) ~ 1+ L(hp, 1) + L(diff(hp), c(1:12))+ trend(diff(hp)))
+model_start_hp <- dynlm(diff(hp) ~ 1+ L(hp, 1) + L(diff(hp), c(1:12)))
 summary(model_start_hp)
 ```
 
@@ -172,7 +172,7 @@ model2@teststat
 **Start**
 
 ```{r}
-model3<-ur.df(c,lags=12,type='trend')
+model3<-ur.df(c,lags=8,type='trend')
 summary(model3)
 ```
 
@@ -191,7 +191,7 @@ model2@teststat
 **Start**
 
 ```{r}
-model4<-ur.df(r,lags=2,type='none')
+model4<-ur.df(r,lags=12,type='trend')
 summary(model4)
 ```
 
